@@ -1,0 +1,1842 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="JejuAir Briefing">
+<meta name="theme-color" content="#f0f2f5">
+<title>JejuAir Briefing & PA Sheet</title>
+<script>
+// 페이지 렌더링 전에 즉시 테마 적용 (깜빡임 방지)
+(function(){
+  var DARK = {
+    '--bg':'#0a0f1e','--bg2':'#111827','--bg3':'#1a2235',
+    '--border':'rgba(255,255,255,0.08)','--border2':'rgba(255,255,255,0.15)',
+    '--text':'#e8edf5','--text2':'#8b96aa','--text3':'#4a5568',
+    '--accent':'#3b82f6','--highlight':'#f59e0b',
+    '--green':'#10b981','--red':'#ef4444','--orange':'#f97316'
+  };
+  var LIGHT = {
+    '--bg':'#f0f2f5','--bg2':'#ffffff','--bg3':'#e4e8ef',
+    '--border':'rgba(0,0,0,0.09)','--border2':'rgba(0,0,0,0.18)',
+    '--text':'#0d1117','--text2':'#3a4a5c','--text3':'#8a98a8',
+    '--accent':'#2563eb','--highlight':'#b45309',
+    '--green':'#047857','--red':'#b91c1c','--orange':'#c2410c'
+  };
+  var isDark = localStorage.getItem('briefing_theme') === 'dark';
+  var vars = isDark ? DARK : LIGHT;
+  var root = document.documentElement;
+  Object.keys(vars).forEach(function(k){ root.style.setProperty(k, vars[k]); });
+  document.documentElement.style.background = vars['--bg'];
+})();
+</script>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0f1e;
+  --bg2: #111827;
+  --bg3: #1a2235;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.15);
+  --text: #e8edf5;
+  --text2: #8b96aa;
+  --text3: #4a5568;
+  --accent: #3b82f6;
+  --accent2: #1d4ed8;
+  --highlight: #f59e0b;
+  --green: #10b981;
+  --red: #ef4444;
+  --orange: #f97316;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans KR', sans-serif;
+  --radius: 6px;
+  --radius-lg: 10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5;overflow:hidden;transition:background .2s,color .2s}
+.scroll-picker{position:relative;height:120px;overflow:hidden;border-radius:var(--radius);background:var(--bg3);border:0.5px solid var(--border2);cursor:ns-resize;user-select:none;-webkit-user-select:none}
+.scroll-picker-list{position:absolute;width:100%}
+.scroll-picker-item{height:40px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text2);transition:all .15s}
+.scroll-picker-item.active{color:var(--text);font-size:calc(var(--ui-fs) + 2px);font-weight:500}
+.scroll-picker::before,.scroll-picker::after{content:'';position:absolute;left:0;right:0;height:40px;z-index:2;pointer-events:none}
+.scroll-picker::before{top:0;background:linear-gradient(to bottom,var(--bg3),transparent)}
+.scroll-picker::after{bottom:0;background:linear-gradient(to top,var(--bg3),transparent)}
+.scroll-picker-sel{position:absolute;top:40px;left:0;right:0;height:40px;border-top:0.5px solid var(--accent);border-bottom:0.5px solid var(--accent);z-index:1;pointer-events:none;opacity:.4}
+.picker-label{font-size:var(--ui-label-fs);color:var(--text2);font-family:var(--mono);margin-bottom:5px;display:block}
+.picker-val{font-size:10px;color:var(--highlight);font-family:var(--mono);margin-top:4px;min-height:13px}
+:root{--ui-fs:12px;--ui-label-fs:11px;--ui-sm-fs:11px}
+.fs-sm{--ui-fs:12px;--ui-label-fs:11px;--ui-sm-fs:10px}
+.fs-md{--ui-fs:15px;--ui-label-fs:13px;--ui-sm-fs:12px}
+.fs-lg{--ui-fs:18px;--ui-label-fs:15px;--ui-sm-fs:14px}
+.fs-sm{font-size:14px}
+.fs-md{font-size:17px}
+.fs-lg{font-size:20px}
+.font-size-btns{display:flex;gap:4px;align-items:center}
+.theme-switch{display:flex;align-items:center;gap:6px}
+.theme-switch-label{font-family:var(--mono);font-size:10px;color:var(--text3)}
+.switch{position:relative;width:36px;height:20px;cursor:pointer}
+.switch input{opacity:0;width:0;height:0;position:absolute}
+.switch-track{position:absolute;inset:0;background:#d1d5db;border:0.5px solid rgba(0,0,0,0.15);border-radius:20px;transition:background .2s}
+.switch input:checked ~ .switch-track{background:var(--accent)}
+.switch-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.switch input:checked ~ .switch-thumb{transform:translateX(16px)}
+.fs-btn{width:28px;height:28px;border:0.5px solid var(--border2);border-radius:var(--radius);background:transparent;cursor:pointer;color:var(--text2);display:flex;align-items:center;justify-content:center;font-family:var(--mono)}
+.fs-btn.active{background:rgba(59,130,246,.15);border-color:var(--accent);color:var(--accent)}
+
+/* ── LAYOUT ── */
+.shell{display:flex;flex-direction:column;height:100vh;max-width:800px;margin:0 auto}
+
+/* ── HEADER ── */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px 10px;
+  border-bottom:0.5px solid var(--border);
+  background:var(--bg);
+  flex-shrink:0;
+}
+.logo{display:flex;align-items:center;gap:8px}
+.logo-mark{
+  width:32px;height:32px;border-radius:var(--radius);
+  background:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:10px;font-weight:500;color:#fff;letter-spacing:-.5px;
+}
+.logo-text{font-family:var(--mono);font-size:13px;letter-spacing:-.3px;color:var(--text)}
+.logo-sub{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.offline-badge{
+  font-family:var(--mono);font-size:10px;padding:3px 8px;
+  border-radius:20px;border:0.5px solid var(--green);
+  color:var(--green);display:flex;align-items:center;gap:4px;
+}
+.offline-badge .dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── TABS ── */
+.tab-bar{
+  display:flex;background:var(--bg2);
+  border-bottom:0.5px solid var(--border);
+  flex-shrink:0;overflow-x:auto;scrollbar-width:none;
+}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab{
+  flex:1;min-width:80px;padding:10px 4px;
+  border:none;background:transparent;cursor:pointer;
+  font-family:var(--sans);font-size:12px;color:var(--text2);
+  border-bottom:2px solid transparent;white-space:nowrap;
+  transition:all .15s;
+}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--bg)}
+.tab:hover:not(.active){color:var(--text);background:rgba(255,255,255,.03)}
+
+/* ── SCROLL AREA ── */
+.content{flex:1;overflow-y:auto;padding:16px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.content::-webkit-scrollbar{width:4px}
+.content::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* ── SECTIONS ── */
+.section{margin-bottom:20px}
+.section-label{
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;
+  color:var(--text3);margin-bottom:8px;text-transform:uppercase;
+  display:flex;align-items:center;gap:6px;
+}
+.section-label::after{content:'';flex:1;height:0.5px;background:var(--border)}
+
+/* ── GRID ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+
+/* ── FIELDS ── */
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:var(--ui-label-fs);color:var(--text2);font-family:var(--mono)}
+.field input,.field select{
+  background:var(--bg3);border:0.5px solid var(--border2);
+  border-radius:var(--radius);padding:7px 10px;
+  font-family:var(--mono);font-size:13px;color:var(--text);width:100%;
+  -webkit-appearance:none;appearance:none;
+}
+.field input:focus,.field select:focus{outline:none;border-color:var(--accent);background:var(--bg2)}
+.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238b96aa'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.converted{font-family:var(--mono);font-size:10px;color:var(--highlight);min-height:13px;padding-left:2px}
+
+/* ── TOGGLE BUTTONS ── */
+.btn-group{display:flex;flex-wrap:wrap;gap:5px}
+.btn-tog{
+  padding:5px 10px;border:0.5px solid var(--border2);
+  border-radius:var(--radius);background:var(--bg3);
+  cursor:pointer;font-size:var(--ui-label-fs);font-family:var(--mono);color:var(--text2);
+  transition:all .12s;white-space:nowrap;
+}
+.btn-tog:hover{border-color:var(--accent);color:var(--text)}
+.btn-tog.sel{background:rgba(59,130,246,.15);border-color:var(--accent);color:var(--accent)}
+.btn-tog.sel-warn{background:rgba(245,158,11,.12);border-color:var(--highlight);color:var(--highlight)}
+.btn-tog.sel-red{background:rgba(239,68,68,.12);border-color:var(--red);color:var(--red)}
+
+/* ── ROUTE ROWS ── */
+.route-row{
+  display:grid;grid-template-columns:55px 55px 55px 45px 55px 65px 28px;
+  gap:5px;align-items:end;margin-bottom:6px;
+}
+.route-row label{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.btn-del{
+  width:28px;height:33px;border:0.5px solid var(--border2);border-radius:var(--radius);
+  background:var(--bg3);cursor:pointer;color:var(--text2);font-size:14px;
+  display:flex;align-items:center;justify-content:center;
+}
+.btn-del:hover{border-color:var(--red);color:var(--red)}
+.btn-add{
+  font-family:var(--mono);font-size:11px;padding:5px 12px;
+  border:0.5px dashed var(--border2);border-radius:var(--radius);
+  background:transparent;cursor:pointer;color:var(--text3);margin-top:4px;
+}
+.btn-add:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── PA BOX ── */
+.pa-box{
+  background:var(--bg2);border:0.5px solid var(--border);
+  border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px;
+  position:relative;
+}
+.pa-box-head{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:10px;padding-bottom:8px;
+  border-bottom:0.5px solid var(--border);
+}
+.pa-box-title{font-family:var(--mono);font-size:11px;color:var(--text2);letter-spacing:.04em}
+.lang-tag{
+  font-family:var(--mono);font-size:9px;letter-spacing:.08em;
+  padding:2px 7px;border-radius:20px;
+  border:0.5px solid var(--border2);color:var(--text3);
+}
+.pa-text{
+  font-family:var(--sans);font-size:var(--ui-fs);line-height:1.9;
+  color:var(--text);white-space:pre-wrap;
+}
+.hl{
+  background:rgba(245,158,11,.18);color:var(--highlight);
+  border-radius:3px;padding:0 3px;font-weight:500;
+}
+.copy-btn{
+  font-family:var(--mono);font-size:10px;padding:4px 10px;
+  border:0.5px solid var(--border2);border-radius:var(--radius);
+  background:transparent;cursor:pointer;color:var(--text2);
+  float:right;margin-top:4px;
+}
+.copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+.copy-btn.done{border-color:var(--green);color:var(--green)}
+
+/* ── SECURITY BADGE ── */
+.sec-row{display:flex;gap:6px;flex-wrap:wrap}
+.sec-btn{
+  flex:1;min-width:50px;padding:6px 4px;text-align:center;
+  border:0.5px solid var(--border2);border-radius:var(--radius);
+  background:var(--bg3);cursor:pointer;
+  font-family:var(--mono);font-size:var(--ui-label-fs);color:var(--text2);
+}
+.sec-btn.active-g{background:rgba(16,185,129,.12);border-color:var(--green);color:var(--green)}
+.sec-btn.active-b{background:rgba(59,130,246,.12);border-color:var(--accent);color:var(--accent)}
+.sec-btn.active-y{background:rgba(245,158,11,.12);border-color:var(--highlight);color:var(--highlight)}
+.sec-btn.active-o{background:rgba(249,115,22,.12);border-color:var(--orange);color:var(--orange)}
+.sec-btn.active-r{background:rgba(239,68,68,.12);border-color:var(--red);color:var(--red)}
+
+/* ── SAVE STATUS ── */
+.save-bar{
+  display:flex;align-items:center;justify-content:flex-end;gap:6px;
+  padding:6px 16px;border-top:0.5px solid var(--border);
+  font-family:var(--mono);font-size:10px;color:var(--text3);
+  flex-shrink:0;background:var(--bg);
+}
+.save-dot{width:5px;height:5px;border-radius:50%;background:var(--green)}
+
+/* ── PANEL ── */
+.panel{display:none}
+.panel.active{display:block}
+
+/* dark-mode overrides */
+.dark-mode .scroll-picker::before{background:linear-gradient(to bottom,var(--bg3),transparent)}
+.dark-mode .scroll-picker::after{background:linear-gradient(to top,var(--bg3),transparent)}
+/* light-mode scroll picker */
+.scroll-picker::before{background:linear-gradient(to bottom,var(--bg3),transparent)}
+.scroll-picker::after{background:linear-gradient(to top,var(--bg3),transparent)}
+</style>
+</head>
+<body>
+<div class="shell fs-sm">
+
+  <header>
+    <div class="logo">
+      <div class="logo-mark">7C</div>
+      <div>
+        <div class="logo-text">BRIEFING & PA</div>
+        <div class="logo-sub">Jeju Air · Captain Tool</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="font-size-btns">
+        <button class="fs-btn active" id="fs-sm" onclick="setFs('sm')" title="작게" style="font-size:10px">A</button>
+        <button class="fs-btn" id="fs-md" onclick="setFs('md')" title="중간" style="font-size:var(--ui-fs)">A</button>
+        <button class="fs-btn" id="fs-lg" onclick="setFs('lg')" title="크게" style="font-size:16px">A</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px">
+        <span style="font-size:11px;color:var(--text3);font-family:var(--mono)">☀️</span>
+        <label class="switch" title="다크모드">
+          <input type="checkbox" id="theme-toggle" onchange="toggleTheme(this.checked)">
+          <div class="switch-track"></div>
+          <div class="switch-thumb"></div>
+        </label>
+        <span style="font-size:11px;color:var(--text3);font-family:var(--mono)">🌙</span>
+      </div>
+      <div class="offline-badge"><span class="dot"></span>OFFLINE OK</div>
+    </div>
+  </header>
+
+  <div class="tab-bar">
+    <button class="tab active" onclick="showTab(0)">브리핑</button>
+    <button class="tab" onclick="showTab(1)">PA 변환</button>
+    <button class="tab" onclick="showTab(2)">Irregular</button>
+  </div>
+
+  <div class="content">
+
+    <!-- ① 브리핑 -->
+    <div class="panel active" id="panel-0">
+
+      <!-- 기본 정보 -->
+      <div class="section">
+        <div class="section-label">기본 정보</div>
+        <div class="g3" style="margin-bottom:8px">
+          <div class="field"><label>날짜</label><input id="flt" type="date" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" oninput="saveBrf()"></div>
+          <div class="field"><label>편명</label><input id="bflt" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="1203" oninput="(function(){var v=this.value.replace(/^7C\s*/i,'');this.value=v?'7C'+v:'';saveBrf();}).call(this)"></div>
+          <div class="field"><label>부기장 이름</label><input id="bfo" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="홍길동" oninput="saveBrf()"></div>
+        </div>
+        <div class="g3" style="margin-bottom:8px">
+          <div class="field"><label>운항승무원</label><input id="bcrew-flt" type="number" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="2" oninput="saveBrf()"></div>
+          <div class="field"><label>객실승무원</label><input id="bcrew-cab" type="number" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="4" oninput="saveBrf()"></div>
+          <div class="field"><label>Extra Crew</label><input id="bcrew-ext" type="number" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="0" oninput="saveBrf()"></div>
+        </div>
+        <div class="g2">
+          <div class="field"><label>기번 HL</label><input id="breg" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="8xxx" oninput="saveBrf()"></div>
+          <div class="field"><label>MEL / CDL</label><input id="bmel" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="없음" oninput="saveBrf()"></div>
+        </div>
+      </div>
+
+      <!-- 운항 정보 -->
+      <div class="section">
+        <div class="section-label">운항 정보</div>
+        <div style="display:grid;grid-template-columns:110px 55px 45px 60px 65px 45px;gap:5px;margin-bottom:4px">
+          <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">구간</span>
+          <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">예상시간</span>
+          <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">고도</span>
+          <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">승객</span>
+          <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">교체공항</span>
+          <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">GATE</span>
+        </div>
+<div style="display:grid;grid-template-columns:110px 55px 45px 60px 65px 45px 26px;gap:5px;margin-bottom:5px;align-items:center" id="brf-route-row-0">
+          <input style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" id="brou0" placeholder="GMP-CJU" oninput="BRF.routes[0].route=this.value;saveBrf()">
+          <input style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" id="bete0" placeholder="50" oninput="BRF.routes[0].ete=this.value;saveBrf()" onblur="convBrfEte(this,0)">
+          <input style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" id="balt0" placeholder="350" oninput="BRF.routes[0].alt=this.value;saveBrf()">
+          <input style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" id="bpax0" placeholder="189" oninput="BRF.routes[0].pax=this.value;saveBrf()">
+          <input style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" id="baltap0" placeholder="ICN" oninput="BRF.routes[0].altap=this.value;saveBrf()">
+          <input style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" id="bgate0" placeholder="23" oninput="BRF.routes[0].gate=this.value;saveBrf()">
+          <button onclick="delStaticRoute(0)" style="background:transparent;border:0.5px solid var(--border2);border-radius:var(--radius);color:var(--text3);cursor:pointer;height:30px;font-size:13px;width:26px">×</button>
+        </div>
+        <div id="brf-routes-extra"></div>
+        <button class="btn-add" onclick="addBrfRoute()">+ 구간 추가</button>
+
+      </div>
+
+      <!-- 기상 정보 -->
+      <div class="section">
+        <div class="section-label">기상 정보</div>
+<div style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius-lg);padding:10px 12px;margin-bottom:8px" id="brf-wx-row-0">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="font-size:var(--ui-label-fs);color:var(--text2);font-family:var(--mono)">공항 1</div>
+            <input style="background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:90px" id="bwicao0" placeholder="RKSS" oninput="BRF.wx[0].icao=this.value;saveBrf()">
+            <button onclick="delStaticWx(0)" style="background:transparent;border:0.5px solid var(--border2);border-radius:var(--radius);color:var(--text3);cursor:pointer;height:30px;font-size:13px;width:26px">×</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="field">
+              <label>기온 (°C)</label>
+              <select id="bwtemp0" style="width:100%;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);padding:8px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);-webkit-appearance:none;appearance:none;cursor:pointer" onchange="(function(){var c=parseInt(this.value);BRF.wx[0].temp=c;document.getElementById('bwtempout0').textContent=c+'°C → '+Math.round(c*9/5+32)+'°F';saveBrf();}).call(this)">
+              <option value="-30">-30°C</option>
+              <option value="-29">-29°C</option>
+              <option value="-28">-28°C</option>
+              <option value="-27">-27°C</option>
+              <option value="-26">-26°C</option>
+              <option value="-25">-25°C</option>
+              <option value="-24">-24°C</option>
+              <option value="-23">-23°C</option>
+              <option value="-22">-22°C</option>
+              <option value="-21">-21°C</option>
+              <option value="-20">-20°C</option>
+              <option value="-19">-19°C</option>
+              <option value="-18">-18°C</option>
+              <option value="-17">-17°C</option>
+              <option value="-16">-16°C</option>
+              <option value="-15">-15°C</option>
+              <option value="-14">-14°C</option>
+              <option value="-13">-13°C</option>
+              <option value="-12">-12°C</option>
+              <option value="-11">-11°C</option>
+              <option value="-10">-10°C</option>
+              <option value="-9">-9°C</option>
+              <option value="-8">-8°C</option>
+              <option value="-7">-7°C</option>
+              <option value="-6">-6°C</option>
+              <option value="-5">-5°C</option>
+              <option value="-4">-4°C</option>
+              <option value="-3">-3°C</option>
+              <option value="-2">-2°C</option>
+              <option value="-1">-1°C</option>
+              <option value="0">0°C</option>
+              <option value="1">1°C</option>
+              <option value="2">2°C</option>
+              <option value="3">3°C</option>
+              <option value="4">4°C</option>
+              <option value="5">5°C</option>
+              <option value="6">6°C</option>
+              <option value="7">7°C</option>
+              <option value="8">8°C</option>
+              <option value="9">9°C</option>
+              <option value="10">10°C</option>
+              <option value="11">11°C</option>
+              <option value="12">12°C</option>
+              <option value="13">13°C</option>
+              <option value="14">14°C</option>
+              <option value="15" selected>15°C</option>
+              <option value="16">16°C</option>
+              <option value="17">17°C</option>
+              <option value="18">18°C</option>
+              <option value="19">19°C</option>
+              <option value="20">20°C</option>
+              <option value="21">21°C</option>
+              <option value="22">22°C</option>
+              <option value="23">23°C</option>
+              <option value="24">24°C</option>
+              <option value="25">25°C</option>
+              <option value="26">26°C</option>
+              <option value="27">27°C</option>
+              <option value="28">28°C</option>
+              <option value="29">29°C</option>
+              <option value="30">30°C</option>
+              <option value="31">31°C</option>
+              <option value="32">32°C</option>
+              <option value="33">33°C</option>
+              <option value="34">34°C</option>
+              <option value="35">35°C</option>
+              <option value="36">36°C</option>
+              <option value="37">37°C</option>
+              <option value="38">38°C</option>
+              <option value="39">39°C</option>
+              <option value="40">40°C</option>
+              <option value="41">41°C</option>
+              <option value="42">42°C</option>
+              <option value="43">43°C</option>
+              <option value="44">44°C</option>
+              <option value="45">45°C</option>
+              <option value="46">46°C</option>
+              <option value="47">47°C</option>
+              <option value="48">48°C</option>
+              <option value="49">49°C</option>
+              <option value="50">50°C</option>
+              </select>
+              <div class="picker-val" id="bwtempout0">15°C → 59°F</div>
+            </div>
+            <div class="field">
+              <label>날씨</label>
+              <select id="bwwx0" style="width:100%;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);padding:8px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);-webkit-appearance:none;appearance:none;cursor:pointer" onchange="BRF.wx[0].wx=this.value;saveBrf()">
+<option value="맑음" selected>맑음</option>
+<option value="(다소)흐림">(다소)흐림</option>
+<option value="이슬비">이슬비</option>
+<option value="소나기">소나기</option>
+<option value="눈">눈</option>
+<option value="안개">안개</option>
+<option value="강풍">강풍</option>
+<option value="황사">황사</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius-lg);padding:10px 12px;margin-bottom:8px" id="brf-wx-row-1">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="font-size:var(--ui-label-fs);color:var(--text2);font-family:var(--mono)">공항 2</div>
+            <input style="background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:90px" id="bwicao1" placeholder="RKSS" oninput="BRF.wx[1].icao=this.value;saveBrf()">
+            <button onclick="delStaticWx(1)" style="background:transparent;border:0.5px solid var(--border2);border-radius:var(--radius);color:var(--text3);cursor:pointer;height:30px;font-size:13px;width:26px">×</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="field">
+              <label>기온 (°C)</label>
+              <select id="bwtemp1" style="width:100%;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);padding:8px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);-webkit-appearance:none;appearance:none;cursor:pointer" onchange="(function(){var c=parseInt(this.value);BRF.wx[1].temp=c;document.getElementById('bwtempout1').textContent=c+'°C → '+Math.round(c*9/5+32)+'°F';saveBrf();}).call(this)">
+              <option value="-30">-30°C</option>
+              <option value="-29">-29°C</option>
+              <option value="-28">-28°C</option>
+              <option value="-27">-27°C</option>
+              <option value="-26">-26°C</option>
+              <option value="-25">-25°C</option>
+              <option value="-24">-24°C</option>
+              <option value="-23">-23°C</option>
+              <option value="-22">-22°C</option>
+              <option value="-21">-21°C</option>
+              <option value="-20">-20°C</option>
+              <option value="-19">-19°C</option>
+              <option value="-18">-18°C</option>
+              <option value="-17">-17°C</option>
+              <option value="-16">-16°C</option>
+              <option value="-15">-15°C</option>
+              <option value="-14">-14°C</option>
+              <option value="-13">-13°C</option>
+              <option value="-12">-12°C</option>
+              <option value="-11">-11°C</option>
+              <option value="-10">-10°C</option>
+              <option value="-9">-9°C</option>
+              <option value="-8">-8°C</option>
+              <option value="-7">-7°C</option>
+              <option value="-6">-6°C</option>
+              <option value="-5">-5°C</option>
+              <option value="-4">-4°C</option>
+              <option value="-3">-3°C</option>
+              <option value="-2">-2°C</option>
+              <option value="-1">-1°C</option>
+              <option value="0">0°C</option>
+              <option value="1">1°C</option>
+              <option value="2">2°C</option>
+              <option value="3">3°C</option>
+              <option value="4">4°C</option>
+              <option value="5">5°C</option>
+              <option value="6">6°C</option>
+              <option value="7">7°C</option>
+              <option value="8">8°C</option>
+              <option value="9">9°C</option>
+              <option value="10">10°C</option>
+              <option value="11">11°C</option>
+              <option value="12">12°C</option>
+              <option value="13">13°C</option>
+              <option value="14">14°C</option>
+              <option value="15" selected>15°C</option>
+              <option value="16">16°C</option>
+              <option value="17">17°C</option>
+              <option value="18">18°C</option>
+              <option value="19">19°C</option>
+              <option value="20">20°C</option>
+              <option value="21">21°C</option>
+              <option value="22">22°C</option>
+              <option value="23">23°C</option>
+              <option value="24">24°C</option>
+              <option value="25">25°C</option>
+              <option value="26">26°C</option>
+              <option value="27">27°C</option>
+              <option value="28">28°C</option>
+              <option value="29">29°C</option>
+              <option value="30">30°C</option>
+              <option value="31">31°C</option>
+              <option value="32">32°C</option>
+              <option value="33">33°C</option>
+              <option value="34">34°C</option>
+              <option value="35">35°C</option>
+              <option value="36">36°C</option>
+              <option value="37">37°C</option>
+              <option value="38">38°C</option>
+              <option value="39">39°C</option>
+              <option value="40">40°C</option>
+              <option value="41">41°C</option>
+              <option value="42">42°C</option>
+              <option value="43">43°C</option>
+              <option value="44">44°C</option>
+              <option value="45">45°C</option>
+              <option value="46">46°C</option>
+              <option value="47">47°C</option>
+              <option value="48">48°C</option>
+              <option value="49">49°C</option>
+              <option value="50">50°C</option>
+              </select>
+              <div class="picker-val" id="bwtempout1">15°C → 59°F</div>
+            </div>
+            <div class="field">
+              <label>날씨</label>
+              <select id="bwwx1" style="width:100%;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);padding:8px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);-webkit-appearance:none;appearance:none;cursor:pointer" onchange="BRF.wx[1].wx=this.value;saveBrf()">
+<option value="맑음" selected>맑음</option>
+<option value="(다소)흐림">(다소)흐림</option>
+<option value="이슬비">이슬비</option>
+<option value="소나기">소나기</option>
+<option value="눈">눈</option>
+<option value="안개">안개</option>
+<option value="강풍">강풍</option>
+<option value="황사">황사</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div id="brf-wx-rows-extra"></div>
+        <button class="btn-add" onclick="addBrfWx()">+ 공항 추가</button>
+        <div class="field" style="margin-top:8px">
+          <label>항로기상 및 TURB 예상 구간</label>
+          <input id="benroute" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="" oninput="saveBrf()">
+        </div>
+        <div style="margin-top:8px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:8px 10px">
+          <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:6px">기류 예상</div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="radio" name="bturb" value="none" id="bturb-none" checked style="accent-color:var(--accent)" onchange="saveBrf()">
+              <span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono)">양호</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="radio" name="bturb" value="light" id="bturb-light" style="accent-color:var(--accent)" onchange="saveBrf()">
+              <span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono)">Light TURB — Fasten Belts Sign 1회, 라인업 금지, 화장실 사용</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="radio" name="bturb" value="mod" id="bturb-mod" style="accent-color:var(--accent)" onchange="saveBrf()">
+              <span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono)">MOD/SEV — Fasten Belts Sign 2회 + PA, 기류 안정 후 OFF / Call</span>
+            </label>
+          </div>
+        </div>
+        <div style="margin-top:8px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:8px 10px">
+          <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:4px">저시정 (550m 미만)</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="checkbox" id="blow-vis" style="width:14px;height:14px;accent-color:var(--accent)" onchange="saveBrf()">
+              <span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono)">해당 — 전자기기 사용중지 요청 (10,000ft ~ 활주로 개방)</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 보안 -->
+      <div class="section">
+        <div class="section-label">보안</div>
+        <div style="font-size:var(--ui-label-fs);color:var(--text2);font-family:var(--mono);margin-bottom:6px">보안 등급 / 보안점검표</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px">
+          <div style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden">
+            <div style="display:flex;gap:4px;padding:6px 6px 4px">
+              <button class="sec-btn" onclick="pickSec(this,'G','active-g')" style="flex:1;font-size:11px">평시 G</button>
+              <button class="sec-btn active-b" onclick="pickSec(this,'B','active-b')" style="flex:1;font-size:11px">관심 B</button>
+            </div>
+            <div style="text-align:center;font-size:11px;font-family:var(--mono);color:var(--text3);padding:4px 0 6px;border-top:0.5px solid var(--border)">A항목</div>
+          </div>
+          <div style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden">
+            <div style="display:flex;padding:6px 6px 4px">
+              <button class="sec-btn" onclick="pickSec(this,'Y','active-y')" style="flex:1;font-size:11px">주의 Y</button>
+            </div>
+            <div style="text-align:center;font-size:11px;font-family:var(--mono);color:var(--text3);padding:4px 0 6px;border-top:0.5px solid var(--border)">B항목</div>
+          </div>
+          <div style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden">
+            <div style="display:flex;gap:4px;padding:6px 6px 4px">
+              <button class="sec-btn" onclick="pickSec(this,'O','active-o')" style="flex:1;font-size:11px">경계 O</button>
+              <button class="sec-btn" onclick="pickSec(this,'R','active-r')" style="flex:1;font-size:11px">심각 R</button>
+            </div>
+            <div style="text-align:center;font-size:11px;font-family:var(--mono);color:var(--text3);padding:4px 0 6px;border-top:0.5px solid var(--border)">C항목</div>
+          </div>
+        </div>
+        <div class="g2">
+          <div class="field"><label>위협수준 음어</label><input id="bthreat" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="예) BRAVO" oninput="saveBrf()"></div>
+          <div class="field"><label>Hijacking 음어</label><input id="bhijack" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="예) DELTA" oninput="saveBrf()"></div>
+        </div>
+      </div>
+
+      <!-- 브리핑 체크리스트 -->
+      <div class="section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:var(--ui-label-fs);color:var(--text2);font-family:var(--mono)">브리핑 체크리스트</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span id="chk-progress" style="font-size:10px;color:var(--text3);font-family:var(--mono)">0 / 15</span>
+            <button onclick="resetChk()" style="font-size:10px;padding:3px 8px;border:0.5px solid var(--border2);border-radius:var(--radius);background:transparent;color:var(--text3);cursor:pointer;font-family:var(--mono)">초기화</button>
+          </div>
+        </div>
+        <div style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius-lg);padding:4px 12px 8px" id="chk-list">
+            <div style="margin-bottom:2px">
+              <div style="font-size:var(--ui-label-fs);color:var(--text3);font-family:var(--mono);padding:6px 4px 4px;letter-spacing:.04em;text-transform:uppercase">기내표준신호</div>
+              <label style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-top:0.5px solid var(--border);cursor:pointer"><input type="checkbox" id="chk0" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" onchange="updateChk()"><span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono);line-height:1.4">Fasten Belts Sign — 이륙 전 2회</span></label>
+              <label style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-top:0.5px solid var(--border);cursor:pointer"><input type="checkbox" id="chk1" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" onchange="updateChk()"><span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono);line-height:1.4">10,000ft 통과 시 OFF (계속 흔들리면 ON + 인터폰)</span></label>
+              <label style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-top:0.5px solid var(--border);cursor:pointer"><input type="checkbox" id="chk2" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" onchange="updateChk()"><span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono);line-height:1.4">강하 전 PA / 강하 중 10,000ft 통과 시 3회</span></label>
+              <label style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-top:0.5px solid var(--border);cursor:pointer"><input type="checkbox" id="chk3" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" onchange="updateChk()"><span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono);line-height:1.4">비정상: 인터폰 Call 2회 / 비상: 3회</span></label>
+              <label style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-top:0.5px solid var(--border);cursor:pointer"><input type="checkbox" id="chk4" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" onchange="updateChk()"><span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono);line-height:1.4">APP Signal 누락 의심 시 1회 Call 문의</span></label>
+            </div>
+            <div style="margin-bottom:2px">
+              <div style="font-size:var(--ui-label-fs);color:var(--text3);font-family:var(--mono);padding:6px 4px 4px;letter-spacing:.04em;text-transform:uppercase">보안</div>
+
+              <label style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-top:0.5px solid var(--border);cursor:pointer"><input type="checkbox" id="chk7" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" onchange="updateChk()"><span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono);line-height:1.4">조종실 출입절차 (인터폰 Call → 커튼 → Knock 3번)</span></label>
+              <label style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-top:0.5px solid var(--border);cursor:pointer"><input type="checkbox" id="chk8" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" onchange="updateChk()"><span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono);line-height:1.4">조종실내 Call 기준 숙지</span></label>
+              <label style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-top:0.5px solid var(--border);cursor:pointer"><input type="checkbox" id="chk9" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" onchange="updateChk()"><span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono);line-height:1.4">비상진입절차 (3회 무응답 → Emergency Access Code)</span></label>
+            </div>
+            <div style="margin-bottom:2px">
+              <div style="font-size:var(--ui-label-fs);color:var(--text3);font-family:var(--mono);padding:6px 4px 4px;letter-spacing:.04em;text-transform:uppercase">이륙중단 / 비상착륙</div>
+              <label style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-top:0.5px solid var(--border);cursor:pointer"><input type="checkbox" id="chk10" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" onchange="updateChk()"><span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono);line-height:1.4">이륙중단 표준절차 Remind</span></label>
+              <label style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-top:0.5px solid var(--border);cursor:pointer"><input type="checkbox" id="chk11" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" onchange="updateChk()"><span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono);line-height:1.4">비상탈출 불필요: "This is the Captain, Remain seated x2"</span></label>
+              <label style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-top:0.5px solid var(--border);cursor:pointer"><input type="checkbox" id="chk12" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" onchange="updateChk()"><span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono);line-height:1.4">비상탈출 예상: "This is the Captain, Crew at station x2"</span></label>
+              <label style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-top:0.5px solid var(--border);cursor:pointer"><input type="checkbox" id="chk13" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" onchange="updateChk()"><span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono);line-height:1.4">비상탈출: "This is the Captain, Evacuate x2"</span></label>
+              <label style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-top:0.5px solid var(--border);cursor:pointer"><input type="checkbox" id="chk14" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" onchange="updateChk()"><span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono);line-height:1.4">비상착륙: 착륙 1분 전 Seat belt sign 4번 + "Brace for impact x2"</span></label>
+            </div>
+            <div style="margin-bottom:2px">
+              <div style="font-size:var(--ui-label-fs);color:var(--text3);font-family:var(--mono);padding:6px 4px 4px;letter-spacing:.04em;text-transform:uppercase">기타</div>
+              <label style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-top:0.5px solid var(--border);cursor:pointer"><input type="checkbox" id="chk15" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" onchange="updateChk()"><span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono);line-height:1.4">식사 시기: PA 끝나고 / GRD / Hot → Cold 순서</span></label>
+              <label style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-top:0.5px solid var(--border);cursor:pointer"><input type="checkbox" id="chk16" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" onchange="updateChk()"><span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono);line-height:1.4">탑재 화물 / 위험물 확인</span></label>
+            </div>
+        </div>
+        <div style="margin-top:8px">
+          <textarea id="briefing-note" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%;resize:vertical;min-height:56px;line-height:1.6;border-radius:var(--radius)" placeholder="비고 (직접 입력)..." oninput="saveBrf()"></textarea>
+        </div>
+      </div>
+
+    </div>
+    <!-- ② PA 변환 -->
+    <div class="panel" id="panel-1">
+      <div class="section">
+        <div class="section-label">단위 변환</div>
+        <div class="g3" style="margin-bottom:4px">
+          <div><span class="picker-label">고도 (ft)</span>
+            <div class="scroll-picker" id="pk-alt"></div>
+            <div class="picker-val" id="p-alt-out">—</div>
+          </div>
+          <div><span class="picker-label">속도 (kt)</span>
+            <div class="scroll-picker" id="pk-spd"></div>
+            <div class="picker-val" id="p-spd-out">—</div>
+          </div>
+          <div><span class="picker-label">기온 (°C)</span>
+            <div class="scroll-picker" id="pk-temp"></div>
+            <div class="picker-val" id="p-temp-out">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">날씨 / 날짜 문구</div>
+        <div class="g2" style="margin-bottom:8px">
+          <div class="field">
+            <label>날씨</label>
+            <select id="p-wx" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" onchange="buildPA()">
+              <option value="clear">맑음 (clear)</option>
+              <option value="partly cloudy">흐림 (partly cloudy)</option>
+              <option value="drizzling">이슬비 (drizzling)</option>
+              <option value="showery">소나기 (showery)</option>
+              <option value="snowing">눈 (snowing)</option>
+              <option value="foggy">안개 (foggy)</option>
+              <option value="windy">강풍 (windy)</option>
+              <option value="hazy (yellow dust)">황사 (hazy)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>현지 날짜</label>
+            <input id="p-date" type="date" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" onchange="buildPA()">
+          </div>
+        </div>
+        <div class="g2" style="margin-bottom:8px">
+          <div><span class="picker-label">현지 시각</span>
+            <div style="display:flex;gap:6px">
+              <div style="flex:1">
+                <div class="scroll-picker" id="pk-hr"></div>
+              </div>
+              <div style="flex:1">
+                <div class="scroll-picker" id="pk-mn"></div>
+              </div>
+            </div>
+            <div class="picker-val" id="p-time-out">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pa-box">
+        <div class="pa-box-head">
+          <span class="pa-box-title">영어 문구 생성</span>
+          <span class="lang-tag">ENG</span>
+        </div>
+        <div class="pa-text" id="pa-result"></div>
+      </div>
+      <button class="copy-btn" id="cp-pa" onclick="copyPA('pa')">복사</button>
+    </div>
+
+        <!-- ④ Irregular -->
+    <div class="panel" id="panel-2">
+      <div class="section">
+        <div class="section-label">출발 지연 (Before Push Back)</div>
+        <div class="g2" style="margin-bottom:8px">
+          <div class="field">
+            <label>지연 사유</label>
+            <select id="irr-reason" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" onchange="buildIrr()">
+              <option value="congestion">공항 혼잡 (Congestion)</option>
+              <option value="atc">항로 혼잡 / ATC</option>
+              <option value="wx-rain">기상 — 폭우/폭설/강풍/짙은 안개</option>
+              <option value="wx-airport">기상 — 공항 기상 불량</option>
+              <option value="wx-thunder">기상 — 이륙 경로상 뇌우</option>
+              <option value="snow-airport">제설 — 공항 제설작업</option>
+              <option value="snow-ac">제설 — 항공기 제설/서리제거 대기</option>
+              <option value="maintenance">항공기 추가 점검</option>
+              <option value="pax-notboard">승객 미탑승</option>
+              <option value="pax-baggage">수하물 탑재 미완료</option>
+              <option value="pax-offload">미탑승 승객 수하물 하기 중</option>
+            </select>
+          </div>
+          <div class="field"><label>약 몇 분 후 출발 (분)</label><input id="irr-mins" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" type="number" placeholder="20" oninput="buildIrr()"></div>
+        </div>
+      </div>
+      <div class="pa-box">
+        <div class="pa-box-head"><span class="pa-box-title">출발 지연 PA — 국문</span><span class="lang-tag">KOR</span></div>
+        <div class="pa-text" id="irr-kor"></div>
+      </div>
+      <div class="pa-box">
+        <div class="pa-box-head"><span class="pa-box-title">출발 지연 PA — 영문</span><span class="lang-tag">ENG</span></div>
+        <div class="pa-text" id="irr-eng"></div>
+      </div>
+      <button class="copy-btn" id="cp-irr" onclick="copyPA('irr')">전체 복사</button>
+
+      <div class="section" style="margin-top:20px">
+        <div class="section-label">이륙 지연 (Before Take Off)</div>
+        <div class="g2" style="margin-bottom:8px">
+          <div class="field">
+            <label>지연 사유</label>
+            <select id="tof-reason" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" onchange="buildTof()">
+              <option value="traffic">이착륙 항공기 혼잡</option>
+              <option value="atc">항로 간격 확보 (ATC)</option>
+              <option value="wx-rain">폭우/폭설/강풍/짙은 안개</option>
+              <option value="wx-thunder">이륙 경로상 뇌우</option>
+              <option value="snow">공항 제설작업</option>
+              <option value="runway">활주로 변경</option>
+              <option value="maintenance">항공기 추가 점검</option>
+            </select>
+          </div>
+          <div class="field"><label>이륙 순번 / 예상 분</label><input id="tof-seq" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="예) 3번째 / 15분" oninput="buildTof()"></div>
+        </div>
+      </div>
+      <div class="pa-box">
+        <div class="pa-box-head"><span class="pa-box-title">이륙 지연 PA — 국문</span><span class="lang-tag">KOR</span></div>
+        <div class="pa-text" id="tof-kor"></div>
+      </div>
+      <div class="pa-box">
+        <div class="pa-box-head"><span class="pa-box-title">이륙 지연 PA — 영문</span><span class="lang-tag">ENG</span></div>
+        <div class="pa-text" id="tof-eng"></div>
+      </div>
+      <button class="copy-btn" id="cp-tof" onclick="copyPA('tof')">전체 복사</button>
+    </div>
+
+  </div>
+
+  <div class="save-bar">
+    <span class="save-dot"></span>
+    <span id="save-time">자동 저장됨</span>
+  </div>
+
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────
+var S = {
+  flt:'', reg:'', bdate:'', crewFlt:'2', crewCab:'4', fltType:'domestic',
+  routes:[{dep:'',arr:'',ete:'',fl:'',pax:'',alt:''}],
+  altFt:35000, altM:10700, spdKt:460, spdKmh:850, spdMph:530,
+  tempC:22, tempF:72, dep:'', arr:'', eta:'',
+  wx:'맑으며', depWx:'맑으며', turb:'none', sec:'G', irrTurb:'light',
+  depTempC:15, depTempF:59,
+  airportWx:[
+    {icao:'', wx:'맑으며', tempC:'', tempF:''},
+    {icao:'', wx:'맑으며', tempC:'', tempF:''},
+    {icao:'', wx:'맑으며', tempC:'', tempF:''}
+  ],
+  enrouteWx:'',
+  threatCode3:'', threatCode4:'', hijackCode:'',
+  briefingNote:''
+};
+
+var ALT_TABLE={10000:3000,12000:3700,13000:4000,14000:4300,15000:4600,16000:4900,17000:5200,18000:5500,19000:5800,20000:6100,21000:6400,22000:6700,23000:7000,24000:7300,25000:7600,26000:7900,27000:8200,28000:8500,29000:8800,30000:9100,31000:9400,32000:9700,33000:10100,34000:10400,35000:10700,36000:11000,37000:11300,38000:11600,39000:11900,40000:12200,41000:12500,42000:12800,43000:13100,44000:13400,45000:13700};
+
+// ── TABS ───────────────────────────────────────────
+var currentTab = 0;
+function showTab(n){
+  document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===n));
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+  currentTab=n;
+  if(n===1){ initPickers(); buildPA(); }
+  if(n===2){buildIrr();buildTof();}
+}
+
+// ── CONVERSIONS ────────────────────────────────────
+
+function convTemp(){
+  var c=parseFloat(document.getElementById('temp-c').value);
+  S.tempC=c;
+  S.tempF=isNaN(c)?'—':Math.round(c*9/5+32);
+  document.getElementById('temp-f-out').textContent = isNaN(c)?'—':'→ '+S.tempF+' °F';
+  save();
+}
+
+// ── PICKERS ────────────────────────────────────────
+function pickWx(el,v){
+  document.querySelectorAll('#wx-group .btn-tog').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel'); S.wx=v; save();
+}
+function pickDepWx(el,v){
+  document.querySelectorAll('#dep-wx-group .btn-tog').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel'); S.depWx=v; save();
+}
+function convDepTemp(){
+  var c=parseFloat(document.getElementById('dep-temp-c')?document.getElementById('dep-temp-c').value:'')||0;
+  S.depTempC=c;
+  S.depTempF=isNaN(c)?'—':Math.round(c*9/5+32);
+  var el=document.getElementById('dep-temp-f-out');
+  if(el) el.textContent = isNaN(c)?'—':'→ '+S.depTempF+' °F';
+  save();
+}
+
+var WX_OPTIONS=['맑으며','(다소) 흐리며','(이슬)비가 내리며','소나기가 내리며','눈이 오고 있으며','안개가 끼어 있으며','바람이 강하게 불고 있으며','황사가 있으며'];
+var WX_LABELS=['맑음','(다소)흐림','이슬비','소나기','눈','안개','강풍','황사'];
+
+function addWxRow(){
+  S.airportWx.push({icao:'',wx:'맑으며',tempC:'',tempF:''});
+  renderAirportWx();
+}
+function delWxRow(i){
+  if(S.airportWx.length<=1)return;
+  S.airportWx.splice(i,1);
+  renderAirportWx();
+}
+function pickAirportWx(i,v){
+  S.airportWx[i].wx=v;
+  renderAirportWx();
+  save();
+}
+function convAirportTemp(i){
+  var el=document.getElementById('awt-'+i);
+  if(!el)return;
+  var c=parseFloat(el.value);
+  S.airportWx[i].tempC=isNaN(c)?'':''+c;
+  S.airportWx[i].tempF=isNaN(c)?'':''+Math.round(c*9/5+32);
+  var fo=document.getElementById('awf-'+i);
+  if(fo) fo.textContent=isNaN(c)?'—':'→ '+S.airportWx[i].tempF+' °F';
+  save();
+}
+function renderAirportWx(){
+  var inp='background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:12px;color:var(--text);';
+  var h='';
+  S.airportWx.forEach(function(r,i){
+    h+='<div style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius-lg);padding:10px 12px;margin-bottom:8px">';
+    h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+    h+='<input style="'+inp+'width:90px" value="'+r.icao+'" placeholder="RKSS" oninput="S.airportWx['+i+'].icao=this.value;save()">';
+    h+='<button onclick="delWxRow('+i+')" style="background:transparent;border:0.5px solid var(--border2);border-radius:var(--radius);padding:3px 9px;font-size:var(--ui-fs);color:var(--text3);cursor:pointer">×</button>';
+    h+='</div>';
+    h+='<div class="btn-group" style="margin-bottom:8px">';
+    WX_OPTIONS.forEach(function(opt,j){
+      var sel=r.wx===opt?' sel':'';
+      h+='<button class="btn-tog'+sel+'" onclick="pickAirportWx('+i+',\''+opt+'\')">'+WX_LABELS[j]+'</button>';
+    });
+    h+='</div>';
+    h+='<div style="display:flex;align-items:center;gap:8px">';
+    h+='<input id="awt-'+i+'" type="number" style="'+inp+'width:80px" value="'+r.tempC+'" placeholder="°C" oninput="convAirportTemp('+i+')">';
+    h+='<span id="awf-'+i+'" style="font-family:var(--mono);font-size:var(--ui-label-fs);color:var(--highlight)">'+( r.tempF ? '→ '+r.tempF+' °F' : '—')+'</span>';
+    h+='</div>';
+    h+='</div>';
+  });
+  var container=document.getElementById('airport-wx-rows');
+  if(container) container.innerHTML=h;
+}
+function pickTurb(el,v){
+  var grp=document.getElementById('turb-group') || el.closest('.btn-group');
+  grp.querySelectorAll('.btn-tog').forEach(b=>{b.classList.remove('sel');b.classList.remove('sel-warn');b.classList.remove('sel-red')});
+  if(v==='none') el.classList.add('sel');
+  else if(v==='light') el.classList.add('sel');
+  else if(v==='mod') el.classList.add('sel-warn');
+  else el.classList.add('sel-red');
+  S.turb=v; save();
+}
+function pickSec(el,v,cls){
+  document.querySelectorAll('.sec-btn').forEach(b=>{b.className='sec-btn'});
+  el.classList.add(cls); S.sec=v; save();
+}
+function pickTurb2(el,v){
+  document.querySelectorAll('#turb2-group .btn-tog').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel'); S.irrTurb=v; buildTurb2();
+}
+
+// ── ROUTES ─────────────────────────────────────────
+function addRoute(){
+  S.routes.push({dep:'',arr:'',ete:'',fl:'',pax:'',alt:''});
+  renderRoutes();
+}
+function delRoute(i){
+  if(S.routes.length===1)return;
+  S.routes.splice(i,1);
+  renderRoutes();
+}
+function renderRoutes(){
+  var h='';
+  var inp='style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%"';
+  S.routes.forEach(function(r,i){
+    h+='<div class="route-row">';
+    h+='<input '+inp+' value="'+r.dep+'" placeholder="GMP" oninput="S.routes['+i+'].dep=this.value;autoSync('+i+');save()">';
+    h+='<input '+inp+' value="'+r.arr+'" placeholder="CJU" oninput="S.routes['+i+'].arr=this.value;autoSync('+i+');save()">';
+    var eteRaw = r.ete||'';
+    var eteDisplay = /^\d+$/.test(eteRaw.trim()) ? minsToEte(eteRaw) : eteRaw;
+    h+='<input '+inp+' value="'+eteDisplay+'" placeholder="50" oninput="S.routes['+i+'].ete=this.value;save()" onblur="var n=parseInt(this.value);if(!isNaN(n)&&/^\\d+$/.test(this.value.trim())){var hh=Math.floor(n/60);var mm=n%60;var r=hh+\'h\'+(mm<10?\'0\':\'\')+mm+\'m\';this.value=r;S.routes['+i+'].ete=r;save();}">';
+    h+='<input '+inp+' value="'+r.fl+'" placeholder="350" oninput="S.routes['+i+'].fl=this.value;save()">';
+    h+='<input '+inp+' type="number" value="'+r.pax+'" placeholder="189" oninput="S.routes['+i+'].pax=this.value;save()">';
+    h+='<input '+inp+' value="'+r.alt+'" placeholder="ICN" oninput="S.routes['+i+'].alt=this.value;save()">';
+    h+='<button class="btn-del" onclick="delRoute('+i+')">×</button>';
+    h+='</div>';
+  });
+  document.getElementById('route-rows').innerHTML=h;
+}
+function autoSync(i){
+  if(i===0){
+    var depEl=document.getElementById('dep');
+    var arrEl=document.getElementById('arr');
+    if(!depEl.value && S.routes[0].dep){ depEl.value=S.routes[0].dep; S.dep=S.routes[0].dep; }
+    if(!arrEl.value && S.routes[0].arr){ arrEl.value=S.routes[0].arr; S.arr=S.routes[0].arr; }
+  }
+}
+
+// ── TIME HELPERS ───────────────────────────────────
+function timeKor(t){
+  if(!t) return '__시 __분';
+  var p=t.split(':'); var h=parseInt(p[0]); var m=parseInt(p[1]);
+  return (h<12?'오전':'오후')+' '+(h===0?12:h>12?h-12:h)+'시 '+m+'분';
+}
+function timeEng(t){
+  if(!t) return '__:__';
+  var p=t.split(':'); var h=parseInt(p[0]); var m=parseInt(p[1]);
+  var ap=h<12?'a.m.':'p.m.'; var hh=h===0?12:h>12?h-12:h;
+  return hh+(m===0?' o\'clock':':'+(m<10?'0':'')+m)+' '+ap;
+}
+
+// ── PA BUILDERS ────────────────────────────────────
+function hl(s){ return '<span class="hl">'+s+'</span>'; }
+
+function readState(){
+  // Read live from DOM if available, else fall back to S
+  var fltEl=document.getElementById('flt');
+  var fltTypeEl=document.getElementById('flt-type');
+  S.flt = (fltEl&&fltEl.value) ? fltEl.value : (S.flt||'______');
+  S.fltType = (fltTypeEl&&fltTypeEl.value) ? fltTypeEl.value : (S.fltType||'domestic');
+
+  // dep = first route dep, arr = last route arr
+  if(S.routes && S.routes.length>0){
+    S.dep = S.routes[0].dep || S.dep || '______';
+    var lastRoute = S.routes[S.routes.length-1];
+    S.arr = lastRoute.arr || S.arr || '______';
+  }
+
+  // Match arrival airport from airportWx list (case-insensitive ICAO match)
+  if(S.airportWx && S.airportWx.length>0){
+    var arrIcao = (S.arr||'').toLowerCase();
+    var match = null;
+    // 1st priority: exact ICAO match
+    for(var i=0;i<S.airportWx.length;i++){
+      if(S.airportWx[i].icao && S.airportWx[i].icao.toLowerCase()===arrIcao){
+        match=S.airportWx[i]; break;
+      }
+    }
+    // 2nd priority: last entry in list
+    if(!match) match=S.airportWx[S.airportWx.length-1];
+    if(match && match.icao){
+      S.wx = match.wx||'맑으며';
+      S.tempC = (match.tempC!==''&&match.tempC!==undefined) ? match.tempC : S.tempC;
+      S.tempF = (match.tempF!==''&&match.tempF!==undefined) ? match.tempF : S.tempF;
+    }
+  }
+}
+
+function turbKor(){
+  if(S.turb==='none') return '오늘 비행 중 기상은 좋을 것으로 예보되었으나,\n기류 영향으로 비행기가 흔들릴 수도 있습니다.';
+  if(S.turb==='light') return '오늘 비행 중 기류 영향으로 기체가 가끔 흔들릴 것으로 예상됩니다.';
+  return '오늘 비행 중 기류 영향으로 기체가 자주 흔들릴 것으로 예상됩니다.\n좌석 벨트를 항상 매주시기 바랍니다.';
+}
+function turbEng(){
+  if(S.turb==='none') return 'We expect a smooth flight today,\nalthough there may be occasional light turbulence.';
+  if(S.turb==='light') return 'We are expecting occasional light turbulence during the flight.';
+  return 'We are expecting moderate to severe turbulence during portions of the flight.\nPlease keep your seatbelt fastened at all times.';
+}
+
+function minsToEte(v){
+  var n = parseInt(v);
+  if(isNaN(n)||n<=0) return v||'';
+  var h = Math.floor(n/60);
+  var m = n%60;
+  return h+'h'+String(m).padStart(2,'0')+'m';
+}
+
+// 4자리 시각 변환: 1640 → 오후 4시 40분, 0840 → 오전 8시 40분
+function timeStrToKor(v){
+  var s = v.replace(/[^0-9]/g,'');
+  if(s.length===3) s='0'+s;
+  if(s.length!==4) return v;
+  var h=parseInt(s.substring(0,2));
+  var m=parseInt(s.substring(2,4));
+  if(h>23||m>59) return v;
+  var ap=h<12?'오전':'오후';
+  var h12=h===0?12:h>12?h-12:h;
+  return ap+' '+h12+'시'+(m>0?' '+m+'분':'');
+}
+
+// 비행시간 변환: 440 → 4h40m, 40 → 0h40m
+function minsToFltime(v){
+  var s = v.replace(/[^0-9]/g,'');
+  if(!s) return v;
+  // Treat as HHMM: 230 → 2h30m, 130 → 1h30m, 40 → 0h40m
+  var h, m;
+  if(s.length<=2){ h=0; m=parseInt(s); }
+  else { h=parseInt(s.slice(0,-2)); m=parseInt(s.slice(-2)); }
+  if(m>59){ // fallback: treat as total minutes
+    h=Math.floor(parseInt(s)/60); m=parseInt(s)%60;
+  }
+  return h+'h'+String(m).padStart(2,'0')+'m';
+}
+
+function wxEng(v){
+  var map={
+    '맑으며':'clear',
+    '(다소) 흐리며':'partly cloudy',
+    '(이슬)비가 내리며':'drizzling',
+    '소나기가 내리며':'showery',
+    '눈이 오고 있으며':'snowing',
+    '안개가 끼어 있으며':'foggy',
+    '바람이 강하게 불고 있으며':'windy',
+    '황사가 있으며':'hazy (yellow dust)'
+  };
+  return map[v]||v;
+}
+
+function gv(id){ var el=document.getElementById(id); return el?el.value:''; }
+
+// ── SCROLL PICKER ENGINE ──────────────────────────
+function makePicker(id, items, defaultIdx, onChange){
+  var el = document.getElementById(id);
+  if(!el) return;
+  var idx = clampIdx(defaultIdx||0);
+  var itemH = 40;
+  var startY = 0, startIdx = 0, dragging = false;
+  var curTranslate = 0, animFrame = null;
+
+  function clampIdx(v){ return Math.max(0, Math.min(items.length-1, Math.round(v))); }
+
+  // Build DOM once
+  var html = '<div class="scroll-picker-sel"></div><div class="scroll-picker-list" id="'+id+'-list">';
+  items.forEach(function(v,i){
+    html += '<div class="scroll-picker-item" data-i="'+i+'">'+v+'</div>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
+  var list = document.getElementById(id+'-list');
+
+  function translateForIdx(i){ return 40 - i*itemH; }
+
+  function applyTranslate(y, snap){
+    if(snap){
+      // snap to nearest
+      var nearIdx = clampIdx(-((y - 40) / itemH));
+      idx = nearIdx;
+      curTranslate = translateForIdx(idx);
+    } else {
+      curTranslate = y;
+      // live highlight nearest
+      var nearIdx = clampIdx(-((y - 40) / itemH));
+      idx = nearIdx;
+    }
+    list.style.transition = snap ? 'transform .15s cubic-bezier(.25,.8,.25,1)' : 'none';
+    list.style.transform = 'translateY('+curTranslate+'px)';
+    // update active class
+    var allItems = list.querySelectorAll('.scroll-picker-item');
+    allItems.forEach(function(it, i){
+      it.classList.toggle('active', i===idx);
+    });
+  }
+
+  // init position
+  applyTranslate(translateForIdx(idx), false);
+
+  // ── Touch ──
+  el.addEventListener('touchstart', function(e){
+    dragging = true;
+    startY = e.touches[0].clientY;
+    startIdx = idx;
+    list.style.transition = 'none';
+  },{passive:true});
+
+  el.addEventListener('touchmove', function(e){
+    if(!dragging) return;
+    e.preventDefault();
+    var dy = e.touches[0].clientY - startY;
+    applyTranslate(translateForIdx(startIdx) + dy, false);
+  },{passive:false});
+
+  el.addEventListener('touchend', function(){
+    dragging = false;
+    applyTranslate(curTranslate, true);
+    if(onChange) setTimeout(function(){ onChange(items[idx], idx); }, 160);
+  });
+
+  // ── Mouse ──
+  el.addEventListener('mousedown', function(e){
+    dragging = true;
+    startY = e.clientY;
+    startIdx = idx;
+    list.style.transition = 'none';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', function(e){
+    if(!dragging) return;
+    var dy = e.clientY - startY;
+    applyTranslate(translateForIdx(startIdx) + dy, false);
+  });
+  document.addEventListener('mouseup', function(){
+    if(!dragging) return;
+    dragging = false;
+    applyTranslate(curTranslate, true);
+    if(onChange) setTimeout(function(){ onChange(items[idx], idx); }, 160);
+  });
+
+  // ── Wheel ──
+  el.addEventListener('wheel', function(e){
+    e.preventDefault();
+    var newIdx = clampIdx(idx + (e.deltaY>0?1:-1));
+    idx = newIdx;
+    applyTranslate(translateForIdx(idx), true);
+    if(onChange) onChange(items[idx], idx);
+  },{passive:false});
+
+  return { getVal: function(){ return items[idx]; }, setIdx: function(i){ idx=clampIdx(i); applyTranslate(translateForIdx(idx),true); } };
+}
+
+// ── PICKER STATE ──
+var PA = {
+  alt: 30000, spd: 450, temp: 15,
+  hr: 7, mn: 0
+};
+
+var ALT_T2={10000:3000,12000:3700,13000:4000,14000:4300,15000:4600,16000:4900,17000:5200,18000:5500,19000:5800,20000:6100,21000:6400,22000:6700,23000:7000,24000:7300,25000:7600,26000:7900,27000:8200,28000:8500,29000:8800,30000:9100,31000:9400,32000:9700,33000:10100,34000:10400,35000:10700,36000:11000,37000:11300,38000:11600,39000:11900,40000:12200,41000:12500,42000:12800,43000:13100,44000:13400,45000:13700};
+
+var WX_LABELS = ['맑음','(다소)흐림','이슬비','소나기','눈','안개','강풍','황사'];
+
+function initBrfPickers(){
+  // clear first
+  [0,1].forEach(function(i){
+    ['bpk-temp-','bpk-wx-'].forEach(function(p){
+      var el=document.getElementById(p+i); if(el) el.innerHTML='';
+    });
+  });
+  [0,1].forEach(function(idx){
+    (function(i){
+      // 기온 피커 -30~50, default 15
+      var temps=[]; for(var t=-30;t<=50;t++) temps.push(t+'°C');
+      var tDef = temps.indexOf('15°C'); if(tDef<0) tDef=45;
+      makePicker('bpk-temp-'+i, temps, tDef, function(v){
+        var c=parseInt(v); var f=Math.round(c*9/5+32);
+        if(!BRF.wx[i]) BRF.wx[i]={};
+        BRF.wx[i].temp = c;
+        var out=document.getElementById('bpk-temp-out-'+i);
+        if(out) out.textContent=c+'°C → '+f+'°F';
+        saveBrf();
+      });
+      // 날씨 피커
+      makePicker('bpk-wx-'+i, WX_LABELS, 0, function(v){
+        if(!BRF.wx[i]) BRF.wx[i]={};
+        BRF.wx[i].wx = v;
+        var out=document.getElementById('bpk-wx-out-'+i);
+        if(out) out.textContent=v;
+        saveBrf();
+      });
+    })(idx);
+  });
+}
+
+function initPickers(){
+  // clear first so re-init works
+  ['pk-alt','pk-spd','pk-temp','pk-hr','pk-mn'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.innerHTML='';
+  });
+  // 고도: 10000~45000, step 1000, default 30000
+  var alts=[]; for(var a=10000;a<=45000;a+=1000) alts.push(a.toLocaleString());
+  var altDef = alts.indexOf('30,000'); if(altDef<0) altDef=20;
+  makePicker('pk-alt', alts, altDef, function(v){
+    PA.alt = parseInt(v.replace(/,/g,''));
+    var m = ALT_T2[PA.alt]||Math.round(PA.alt*0.3048/100)*100;
+    document.getElementById('p-alt-out').textContent = PA.alt.toLocaleString()+' ft → '+m.toLocaleString()+' m';
+    buildPA();
+  });
+
+  // 속도: 300~600, step 10, default 450
+  var spds=[]; for(var s=300;s<=600;s+=10) spds.push(s+' kt');
+  var spdDef = spds.indexOf('450 kt'); if(spdDef<0) spdDef=15;
+  makePicker('pk-spd', spds, spdDef, function(v){
+    PA.spd = parseInt(v);
+    var kmh=Math.round(PA.spd*1.852/10)*10;
+    var mph=Math.round(PA.spd*1.15078/10)*10;
+    document.getElementById('p-spd-out').textContent = PA.spd+' kt → '+kmh+' km/h / '+mph+' mph';
+    buildPA();
+  });
+
+  // 기온: -30~50, step 1, default 15
+  var temps=[]; for(var t=-30;t<=50;t++) temps.push(t+'°C');
+  var tempDef = temps.indexOf('15°C'); if(tempDef<0) tempDef=45;
+  makePicker('pk-temp', temps, tempDef, function(v){
+    PA.temp = parseInt(v);
+    var tf = Math.round(PA.temp*9/5+32);
+    document.getElementById('p-temp-out').textContent = PA.temp+'°C → '+tf+'°F';
+    buildPA();
+  });
+
+  // 시간: 0~23
+  var hrs=[]; for(var h=0;h<24;h++) hrs.push((h<10?'0':'')+h+'시');
+  makePicker('pk-hr', hrs, 7, function(v){
+    PA.hr = parseInt(v);
+    updateTimeOut(); buildPA();
+  });
+
+  // 분: 0~55, step 5
+  var mns=[]; for(var m=0;m<60;m+=5) mns.push((m<10?'0':'')+m+'분');
+  makePicker('pk-mn', mns, 0, function(v){
+    PA.mn = parseInt(v);
+    updateTimeOut(); buildPA();
+  });
+
+  // 초기 변환값 표시
+  var m0 = ALT_T2[30000]||10700;
+  document.getElementById('p-alt-out').textContent = '30,000 ft → '+m0.toLocaleString()+' m';
+  var kmh0=Math.round(450*1.852/10)*10, mph0=Math.round(450*1.15078/10)*10;
+  document.getElementById('p-spd-out').textContent = '450 kt → '+kmh0+' km/h / '+mph0+' mph';
+  document.getElementById('p-temp-out').textContent = '15°C → '+Math.round(15*9/5+32)+'°F';
+  updateTimeOut();
+  buildPA();
+}
+
+function updateTimeOut(){
+  var ap = PA.hr<12?'AM':'PM';
+  var h12 = PA.hr===0?12:PA.hr>12?PA.hr-12:PA.hr;
+  var ms = (PA.mn<10?'0':'')+PA.mn;
+  document.getElementById('p-time-out').textContent = h12+':'+ms+' '+ap;
+}
+
+function buildPA(){
+  // 피커 값 사용
+  var dateV = document.getElementById('p-date')&&document.getElementById('p-date').value||'';
+
+  // Local time 영어 문구
+  var ap = PA.hr<12?'AM':'PM';
+  var h12 = PA.hr===0?12:PA.hr>12?PA.hr-12:PA.hr;
+  var ms = (PA.mn<10?'0':'')+PA.mn;
+  var timeEng = 'at '+h12+':'+ms+' '+ap;
+
+  var dateEng = '';
+  if(dateV){
+    var p = dateV.split('-');
+    var d = new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
+    var DAYS_E = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    var MONTHS_E = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    dateEng = 'on '+DAYS_E[d.getDay()]+', '+MONTHS_E[parseInt(p[1])-1]+' '+parseInt(p[2]);
+  }
+
+  var result = hl(timeEng + (dateEng ? ' '+dateEng : ''));
+  var el = document.getElementById('pa-result');
+  if(el) el.innerHTML = result;
+}
+
+var DAYS_KOR = ['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];
+var DAYS_ENG = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var MONTHS_ENG = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function parseDateKor(v){
+  // v = "2026-04-18"
+  var p=v.split('-'); if(p.length<3) return v;
+  var d=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
+  return p[1].replace(/^0/,'')+'월 '+p[2].replace(/^0/,'')+'일 '+DAYS_KOR[d.getDay()];
+}
+function parseDateEng(v){
+  var p=v.split('-'); if(p.length<3) return v;
+  var d=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
+  return DAYS_ENG[d.getDay()]+', '+MONTHS_ENG[parseInt(p[1])-1]+' '+parseInt(p[2]);
+}
+function wDateChanged(){ buildWelcome(); }
+function aDateChanged(){ buildArrival(); }
+
+function buildWelcome(){
+  var wtype   = gv('w-type')||'domestic';
+  var dom     = wtype==='domestic';
+  var midnight= wtype==='midnight';
+  var turb    = gv('w-turb')||'none';
+  var ap      = gv('w-airport')||'______';
+  var alt     = gv('w-alt');
+  var spd     = gv('w-spd');
+  var fltime  = gv('w-fltime')||'';
+  var eta     = gv('w-eta')||'오전/오후  __시 __분';
+  var wx      = gv('w-wx')||'맑으며';
+  var tc      = gv('w-temp');
+  var tf      = tc!==''?Math.round(parseFloat(tc)*9/5+32):'';
+  var depCity = gv('w-dep-city')||'';
+  var arrCity = gv('w-arr-city')||'';
+  var timeDiff= gv('w-timediff')||'';
+  var wDateVal= gv('w-date')||'';
+  var dateKor = wDateVal ? parseDateKor(wDateVal) : '';
+  var dateEng = wDateVal ? parseDateEng(wDateVal) : '';
+
+  var ALT_T={10000:3000,12000:3700,13000:4000,14000:4300,15000:4600,16000:4900,17000:5200,18000:5500,19000:5800,20000:6100,21000:6400,22000:6700,23000:7000,24000:7300,25000:7600,26000:7900,27000:8200,28000:8500,29000:8800,30000:9100,31000:9400,32000:9700,33000:10100,34000:10400,35000:10700,36000:11000,37000:11300,38000:11600,39000:11900,40000:12200,41000:12500,42000:12800,43000:13100,44000:13400,45000:13700};
+  var altFt = parseInt(alt)||0;
+  var altM  = altFt?(ALT_T[altFt]||Math.round(altFt*0.3048/100)*100):'______';
+  var altFtD= altFt?altFt.toLocaleString():'______';
+  var spdKt = parseInt(spd)||0;
+  var spdMph= spdKt?Math.round(spdKt*1.15078/10)*10:'______';
+  var spdKmh= spdKt?Math.round(spdKt*1.852/10)*10:'______';
+  var tempKor= tc!==''?tc+'도':'______도';
+  var tempC  = tc!==''?tc+' degrees Celsius':'______';
+  var tempF  = tf!==''?tf+' degrees Fahrenheit':'______';
+  var wxE    = wxEng(wx);
+
+  var turbKor = turb==='none'
+    ? '오늘 비행 중 기상은 좋을 것으로 예보되었으나, 기류 영향으로 비행기가\n흔들릴 수도 있습니다.'
+    : '오늘 비행 중 기상은 기류 영향으로 기체가 '+(turb==='light'?'가끔':'자주')+' 흔들릴 것으로 예상됩니다.';
+  var turbEn = turb==='none'
+    ? 'We expect generally good weather, but there may be some turbulence during the flight.\nPlease keep your seatbelt fastened while you are seated.'
+    : 'We expect some turbulence during the flight, so please keep your seatbelt fastened\nwhile you are seated.';
+  var timeDiffKor = (depCity&&arrCity&&timeDiff)?'\n('+hl(depCity)+'와 '+hl(arrCity)+'간의 시차는 '+hl(timeDiff+'시간')+'입니다.)':'';
+  var timeDiffEng = (depCity&&arrCity&&timeDiff)?'\nThe time difference between '+hl(depCity)+' and '+hl(arrCity)+' is '+hl(timeDiff+' hour(s)')+'.':'';
+  var fltimeKor = fltime?hl(fltime)+'으로':'______시간 ______분으로';
+
+  // ── 심야 ──
+  if(midnight){
+    document.getElementById('pa-kor').innerHTML =
+'손님 여러분, 안녕하십니까?\n저는 여러분을 '+hl(ap)+'(국제)공항까지 모시고 가는 기장입니다.\n저희 제주항공을 이용해 주셔서 대단히 감사합니다.\n\n'+hl(ap)+'(국제)공항 착륙 예상 시각은\n현지시각 '+hl(eta)+'입니다. 감사합니다.';
+    document.getElementById('pa-eng').innerHTML =
+'Good morning(/afternoon/evening), dear passengers.\n\nThis is your captain speaking.\n\nWelcome aboard JEJUair.\n\nWe will arrive at '+hl(ap)+' (international) airport around '+hl(eta)+'.\n\nThank you.';
+    return;
+  }
+
+  // ── 국내선 ──
+  if(dom){
+    document.getElementById('pa-kor').innerHTML =
+'손님 여러분, 안녕하십니까?\n저는 여러분을 '+hl(ap)+'(국제)공항까지 모시고 가는 기장입니다.\n\n저희 제주항공을 이용해 주셔서 대단히 감사합니다.\n\n우리 비행기는 고도 '+hl(altM+' 미터')+', 시속 '+hl(spdKmh+' 킬로미터')+'로 순항하고 있으며,\n'+hl(ap)+'공항에 '+(dateKor?hl(dateKor)+' ':'')+hl(eta)+'경에 착륙 예정입니다.\n\n현재 '+hl(ap)+'공항의 날씨는 '+hl(wx)+', 기온은 '+hl(tempKor)+'입니다.\n\n'+turbKor+'\n\n자리에 앉아 계실 때에는 항상 좌석 벨트를 매주시기 바랍니다. 감사합니다.';
+    document.getElementById('pa-eng').innerHTML =
+'Good morning(/afternoon/evening), dear passengers.\nThis is your captain speaking.\nWelcome aboard JEJUair flight bound for '+hl(ap)+' (international) airport.\n\nWe are cruising at '+hl(altFtD+' feet')+' (or '+hl(altM+' meters')+'),\nwith a ground speed of '+hl(spdMph+' miles per hour')+' (or '+hl(spdKmh+' kilometers per hour')+').\nWe expect to land at '+(dateEng?hl(dateEng)+', ':'')+hl(eta)+' in the morning(/afternoon/evening).\n\nThe current temperature at '+hl(ap)+' is '+hl(tempC)+' (or '+hl(tempF)+')\nand it is '+hl(wxE)+'.\n\n'+turbEn+'\n\nThank you.';
+    return;
+  }
+
+  // ── 국제선 ──
+  document.getElementById('pa-kor').innerHTML =
+'손님 여러분, 안녕하십니까?\n저는 여러분을 '+hl(ap)+' 국제공항까지 모시고 가는 기장입니다.\n저희 제주항공을 이용해 주셔서 대단히 감사합니다.\n\n우리 비행기는 고도 '+hl(altM+' 미터')+', 시속 '+hl(spdKmh+' 킬로미터')+'로 순항하고 있습니다.\n\n'+hl(ap)+' 국제공항까지 비행시간은 '+fltimeKor+'\n현지시각 '+(dateKor?hl(dateKor)+' ':'')+hl(eta)+'경에 착륙 예정입니다.\n'+(timeDiff?'('+hl(depCity)+'와 '+hl(arrCity)+'간의 시차는 '+hl(timeDiff+'시간')+'입니다.)':'')+'\n현재 '+hl(ap)+'공항의 날씨는 '+hl(wx)+', 기온은 '+hl(tempKor)+'입니다.\n\n'+turbKor+'\n\n자리에 앉아 계실 때에는 항상 좌석 벨트를 매주시기 바랍니다. 감사합니다.';
+  document.getElementById('pa-eng').innerHTML =
+'Good morning(/afternoon/evening), dear passengers.\nThis is your captain speaking.\nWelcome aboard JEJUair flight bound for '+hl(ap)+' international airport.\n\nWe are cruising at '+hl(altFtD+' feet')+' (or '+hl(altM+' meters')+'),\nwith a ground speed of '+hl(spdMph+' miles per hour')+' (or '+hl(spdKmh+' kilometers per hour')+').\nOur flight time is '+hl(fltime||'______')+',\nand we expect to land at '+(dateEng?hl(dateEng)+', ':'')+hl(eta)+'.'+(timeDiff?'\nThe time difference between '+hl(depCity)+' and '+hl(arrCity)+' is '+hl(timeDiff+' hour(s)')+'.':'')+'\n\nThe current temperature at '+hl(ap)+' is '+hl(tempC)+' (or '+hl(tempF)+')\nand it is '+hl(wxE)+'.\n\n'+turbEn+'\n\nThank you.';
+}
+
+function buildArrival(){
+  var ap   = gv('a-airport')||'______';
+  var mins = gv('a-mins')||'__';
+  var wx   = gv('a-wx')||'맑으며';
+  var tc   = gv('a-temp');
+  var tf   = tc!==''?Math.round(parseFloat(tc)*9/5+32):'__';
+  var aTime    = gv('a-time')||'';
+  var aDateVal = gv('a-date')||'';
+  var aDateKor = aDateVal ? parseDateKor(aDateVal) : '__월 __일 __요일';
+  var aDateEng = aDateVal ? parseDateEng(aDateVal) : '(date)';
+  var time     = aTime||'__시 __분';
+  var tempD  = tc!==''?tc+'도':'____도';
+  var tempCd = tc!==''?tc+' degrees Celsius':'____';
+  var tempFd = tc!==''?tf+' degrees Fahrenheit':'____';
+
+  document.getElementById('arr-kor').innerHTML =
+'손님 여러분, 저는 기장입니다.\n우리 비행기는 앞으로 약 '+hl(mins+' 분')+'후에 '+hl(ap)+' 국제공항에 착륙 예정입니다.\n현재 공항의 날씨는 '+hl(wx)+', 기온은 '+hl(tempD)+'입니다.\n\n지금 이곳의 시각은 '+hl(aDateKor)+' '+hl(time)+'입니다.\n감사합니다.';
+
+  document.getElementById('arr-eng').innerHTML =
+'Dear passengers, this is your captain speaking.\n\nWe expect to land at '+hl(ap)+' international airport in about '+hl(mins+' minutes')+'.\nThe current temperature at '+hl(ap)+' is '+hl(tempCd)+' (or '+hl(tempFd)+')\nand it is '+hl(wxEng(wx))+'.\n\nThe current (/local) time is '+(aDateEng?hl(aDateEng)+', ':'')+hl(time)+'.\nThank you for flying with us today.';
+}
+
+function buildIrr(){
+  var reason = document.getElementById('irr-reason')&&document.getElementById('irr-reason').value||'congestion';
+  var mins   = document.getElementById('irr-mins')&&document.getElementById('irr-mins').value||'';
+  var minsKor = mins ? '약 '+hl(mins+'분')+'후에' : hl('잠시 후에');
+  var minsEng = mins ? 'in about '+hl(mins+' minutes') : hl('in a few minutes');
+
+  var rKor = {
+    'congestion':  '공항 혼잡으로',
+    'atc':         '항로의 혼잡으로 관제 허가를 받지 못하여',
+    'wx-rain':     '폭우(/폭설/강풍/짙은 안개)로 인해',
+    'wx-airport':  '공항의 기상 상태가 좋지 않아',
+    'wx-thunder':  '이륙 경로상의 뇌우로 인해',
+    'snow-airport':'공항 제설작업으로 인해',
+    'snow-ac':     '항공기 제설(/서리제거) 작업을 위한 순서를 기다리고 있어',
+    'maintenance': '항공기 추가 점검으로',
+    'pax-notboard':'일부 승객이 아직 탑승하지 않아',
+    'pax-baggage': '수하물 탑재가 끝나지 않아',
+    'pax-offload': '탑승 수속을 마친 후 탑승하지 않은 승객의 수하물을 내리고 있어'
+  };
+  var rEng = {
+    'congestion':  'due to traffic congestion at the airport',
+    'atc':         'as we have not received departure clearance from Air Traffic Control due to congestion on our route',
+    'wx-rain':     'due to heavy rain (/heavy snow/strong winds/heavy fog)',
+    'wx-airport':  'due to poor weather conditions at the airport',
+    'wx-thunder':  'due to a thunderstorm on our route',
+    'snow-airport':'due to snow removal at the airport',
+    'snow-ac':     'as we are waiting for our turn to remove snow (/frost) from our aircraft',
+    'maintenance': 'as a technical check of this aircraft is required',
+    'pax-notboard':'as some of our passengers have not yet boarded',
+    'pax-baggage': 'due to baggage loading',
+    'pax-offload': 'as some of our passengers have not arrived and their baggage must be unloaded before departure'
+  };
+
+  document.getElementById('irr-kor').innerHTML =
+'손님 여러분, 저는 기장입니다.\n\n우리 비행기는 '+hl(rKor[reason]||reason)+' 출발이 늦어지고 있습니다.\n\n'+minsKor+' 출발할 예정입니다.\n\n이 점 양해해 주시기 바랍니다.';
+
+  document.getElementById('irr-eng').innerHTML =
+'Dear passengers, this is the captain.\n\nOur departure is delayed '+hl(rEng[reason]||reason)+'.\n\nWe expect to depart '+minsEng+'.\n\nWe ask for your patience. Thank you.';
+}
+
+function buildTof(){
+  var reason = document.getElementById('tof-reason')&&document.getElementById('tof-reason').value||'traffic';
+  var seq    = document.getElementById('tof-seq')&&document.getElementById('tof-seq').value||'';
+  var rKor = {
+    'traffic':    '이착륙하는 비행기가 많아',
+    'atc':        '항로 상 간격을 충분히 확보하기 위해',
+    'wx-rain':    '공항에 폭우(/폭설/강풍/짙은 안개)로 인해',
+    'wx-thunder': '이륙 경로상의 뇌우로 인해',
+    'snow':       '공항 제설 작업으로 인해',
+    'runway':     '활주로 변경으로',
+    'maintenance':'항공기 추가 점검으로'
+  };
+  var rEng = {
+    'traffic':    'due to traffic congestion',
+    'atc':        'due to air traffic control spacing on our route',
+    'wx-rain':    'due to heavy rain (/heavy snow/strong winds/heavy fog)',
+    'wx-thunder': 'due to a thunderstorm on our departure route',
+    'snow':       'due to snow removal at the airport',
+    'runway':     'due to a runway change',
+    'maintenance':'due to technical reasons'
+  };
+  var seqKor = seq ? '\n우리 비행기의 이륙 순서는 '+hl(seq)+'입니다.' : '';
+  var seqEng = seq ? '\nWe are now '+hl(seq)+' in sequence for take-off.' : '';
+
+  if(document.getElementById('tof-kor'))
+    document.getElementById('tof-kor').innerHTML =
+'손님 여러분, 저는 기장입니다.\n\n우리 비행기는 '+hl(rKor[reason]||reason)+' 이륙이 늦어지고 있습니다.'+seqKor+'\n\n이 점 양해해 주시기 바랍니다.';
+  if(document.getElementById('tof-eng'))
+    document.getElementById('tof-eng').innerHTML =
+'Dear passengers, this is the captain.\n\nOur take off is being delayed '+hl(rEng[reason]||reason)+'.'+seqEng+'\n\nThank you.';
+}
+
+function buildTurb2(){
+  var light = S.irrTurb==='light';
+  document.getElementById('turb-kor').innerHTML = light
+    ? '손님 여러분,\n현재 기류가 불안정하여 비행기가 흔들리고 있습니다.\n\n좌석 벨트 사인이 켜져 있는 동안에는\n반드시 좌석 벨트를 매주시기 바랍니다.\n\n협조해 주셔서 감사합니다.'
+    : '손님 여러분, 저는 기장입니다.\n\n현재 기류가 매우 불안정하여 기체가 심하게 흔들리고 있습니다.\n\n즉시 자리로 돌아가 좌석 벨트를 착용해 주시고,\n기내 이동 및 화장실 이용을 자제해 주시기 바랍니다.\n\n감사합니다.';
+  document.getElementById('turb-eng').innerHTML = light
+    ? 'Ladies and gentlemen,\nwe are currently experiencing light turbulence.\n\nPlease make sure your seatbelt is fastened\nwhile the fasten seatbelt sign is illuminated.\n\nWe appreciate your cooperation.'
+    : 'Ladies and gentlemen, this is your captain speaking.\n\nWe are currently experiencing moderate to severe turbulence.\n\nPlease return to your seat immediately\nand fasten your seatbelt securely.\nPlease refrain from moving around the cabin\nuntil further notice.\n\nThank you.';
+}
+
+// ── COPY ───────────────────────────────────────────
+function copyPA(which){
+  var text='';
+  if(which==='welcome'){
+    text=document.getElementById('pa-kor').innerText+'\n\n────────\n\n'+document.getElementById('pa-eng').innerText;
+  } else {
+    text=document.getElementById('arr-kor').innerText+'\n\n────────\n\n'+document.getElementById('arr-eng').innerText;
+  }
+  var btnId='cp-'+which;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(function(){
+      var b=document.getElementById(btnId);
+      b.textContent='복사됨 ✓'; b.classList.add('done');
+      setTimeout(function(){b.textContent='전체 복사';b.classList.remove('done');},2000);
+    });
+  }
+}
+
+// ── PERSIST ────────────────────────────────────────
+function updateChk(){
+  var all = document.querySelectorAll('#chk-list input[type=checkbox]');
+  var done = 0;
+  all.forEach(function(c){ if(c.checked) done++; });
+  var prog = document.getElementById('chk-progress');
+  if(prog) prog.textContent = done+' / '+all.length;
+  // color progress
+  if(prog) prog.style.color = done===all.length ? 'var(--green)' : 'var(--text3)';
+}
+function resetChk(){
+  document.querySelectorAll('#chk-list input[type=checkbox]').forEach(function(c){ c.checked=false; });
+  updateChk();
+}
+
+function save(){
+  S.flt = document.getElementById('flt').value||'';
+  S.reg = document.getElementById('reg').value||'';
+  S.bdate = document.getElementById('bdate').value||'';
+  S.crewFlt = document.getElementById('crew-flt').value||'';
+  S.crewCab = document.getElementById('crew-cab').value||'';
+  S.fltType = document.getElementById('flt-type').value;
+  S.dep = document.getElementById('dep').value||'';
+  S.arr = document.getElementById('arr').value||'';
+  // eta removed from UI - use first route ETE or keep existing
+  S.eta = S.eta||'';
+  try{localStorage.setItem('briefing_state', JSON.stringify(S));}catch(e){}
+  var now=new Date();
+  document.getElementById('save-time').textContent=
+    '자동 저장 '+now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+}
+
+function load(){
+  try{
+    var raw=localStorage.getItem('briefing_state');
+    if(!raw)return;
+    var d=JSON.parse(raw);
+    Object.assign(S,d);
+    document.getElementById('flt').value=S.flt||'';
+    document.getElementById('reg').value=S.reg||'';
+    document.getElementById('bdate').value=S.bdate||'';
+    document.getElementById('crew-flt').value=S.crewFlt||'';
+    document.getElementById('crew-cab').value=S.crewCab||'';
+    document.getElementById('flt-type').value=S.fltType||'domestic';
+    document.getElementById('dep').value=S.dep||'';
+    document.getElementById('arr').value=S.arr||'';
+
+    document.getElementById('temp-c').value=S.tempC!==undefined?S.tempC:'';
+    // eta field removed from UI
+    if(document.getElementById('std')) document.getElementById('std').value=S.std||'';
+    if(document.getElementById('dep-temp-c')) document.getElementById('dep-temp-c').value=S.depTempC!==undefined?S.depTempC:'';
+    if(S.depTempF&&S.depTempF!=='—') document.getElementById('dep-temp-f-out').textContent='→ '+S.depTempF+' °F';
+
+    if(S.tempF!==undefined && S.tempF!=='—') document.getElementById('temp-f-out').textContent='→ '+S.tempF+' °F';
+    // wx
+    document.querySelectorAll('#wx-group .btn-tog').forEach(b=>{
+      if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+S.wx+"'")){b.classList.add('sel');}else{b.classList.remove('sel');}
+    });
+    document.querySelectorAll('#dep-wx-group .btn-tog').forEach(b=>{
+      if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+(S.depWx||'맑으며')+"'")){b.classList.add('sel');}else{b.classList.remove('sel');}
+    });
+    // sec
+    var secMap={G:'active-g',B:'active-b',Y:'active-y',O:'active-o',R:'active-r'};
+    document.querySelectorAll('.sec-btn').forEach(b=>{b.className='sec-btn';});
+    document.querySelectorAll('.sec-btn').forEach(b=>{
+      if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+S.sec+"'")){b.classList.add(secMap[S.sec]||'active-g');}
+    });
+    renderRoutes();
+    renderAirportWx();
+    if(document.getElementById('enroute-wx') && S.enrouteWx)
+      document.getElementById('enroute-wx').value = S.enrouteWx;
+    if(document.getElementById('threat-code-3') && S.threatCode3)
+      document.getElementById('threat-code-3').value = S.threatCode3;
+    if(document.getElementById('threat-code-4') && S.threatCode4)
+      document.getElementById('threat-code-4').value = S.threatCode4;
+    if(document.getElementById('hijack-code') && S.hijackCode)
+      document.getElementById('hijack-code').value = S.hijackCode;
+    if(document.getElementById('briefing-note') && S.briefingNote)
+      document.getElementById('briefing-note').value = S.briefingNote;
+  }catch(e){}
+}
+
+// ── INIT ───────────────────────────────────────────
+var DARK = {
+  '--bg':'#0a0f1e','--bg2':'#111827','--bg3':'#1a2235',
+  '--border':'rgba(255,255,255,0.08)','--border2':'rgba(255,255,255,0.15)',
+  '--text':'#e8edf5','--text2':'#8b96aa','--text3':'#4a5568',
+  '--accent':'#3b82f6','--highlight':'#f59e0b',
+  '--green':'#10b981','--red':'#ef4444','--orange':'#f97316'
+};
+var LIGHT = {
+  '--bg':'#f0f2f5','--bg2':'#ffffff','--bg3':'#e4e8ef',
+  '--border':'rgba(0,0,0,0.09)','--border2':'rgba(0,0,0,0.18)',
+  '--text':'#0d1117','--text2':'#3a4a5c','--text3':'#8a98a8',
+  '--accent':'#2563eb','--highlight':'#b45309',
+  '--green':'#047857','--red':'#b91c1c','--orange':'#c2410c'
+};
+function toggleTheme(isDark){
+  var vars = isDark ? DARK : LIGHT;
+  var root = document.documentElement;
+  Object.keys(vars).forEach(function(k){ root.style.setProperty(k, vars[k]); });
+  document.body.style.background = vars['--bg'];
+  document.body.style.color = vars['--text'];
+  try{ localStorage.setItem('briefing_theme', isDark?'dark':'light'); }catch(e){}
+}
+
+function setFs(size){
+  var shell = document.querySelector('.shell');
+  shell.classList.remove('fs-sm','fs-md','fs-lg');
+  shell.classList.add('fs-'+size);
+  document.querySelectorAll('.fs-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('fs-'+size).classList.add('active');
+  try{localStorage.setItem('briefing_fs', size);}catch(e){}
+}
+
+function convBrfEte(el, i){
+  var v = el.value.trim();
+  if(/^\d+$/.test(v)){
+    var n = parseInt(v);
+    var hh, mm;
+    if(v.length<=2){ hh=0; mm=n; }
+    else { hh=parseInt(v.slice(0,-2)); mm=parseInt(v.slice(-2)); }
+    if(mm>59){ hh=Math.floor(n/60); mm=n%60; }
+    var rv=hh+':'+(mm<10?'0':'')+mm;
+    el.value=rv; BRF.routes[i].ete=rv; saveBrf();
+  }
+}
+
+// ── BRF STATE ──
+var BRF = {
+  routes: [{flt:'',route:'',ete:'',alt:'',pax:'',altap:'',gate:''}],
+  wx: [
+    {icao:'',wind:'',temp:'',vis:''},
+    {icao:'',wind:'',temp:'',vis:''}
+  ]
+};
+
+function saveBrf(){
+  try{ localStorage.setItem('brf_state', JSON.stringify(BRF)); }catch(e){}
+}
+function loadBrf(){
+  try{
+    var d = JSON.parse(localStorage.getItem('brf_state')||'null');
+    if(d){
+      Object.assign(BRF, d);
+      // ensure arrays have at least defaults
+      if(!BRF.routes||!BRF.routes.length) BRF.routes=[{flt:'',route:'',ete:'',alt:'',pax:'',altap:'',gate:''}];
+      if(!BRF.wx||BRF.wx.length<2) BRF.wx=[{icao:'',wind:'',temp:'',vis:''},{icao:'',wind:'',temp:'',vis:''}];
+    }
+  }catch(e){}
+}
+
+function addBrfRoute(){
+  var i = BRF.routes.length;
+  BRF.routes.push({flt:'',route:'',ete:'',alt:'',pax:'',altap:'',gate:''});
+  var extra = document.getElementById('brf-routes-extra');
+  if(extra){
+    var I2='background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%';
+    var IB2='background:transparent;border:0.5px solid var(--border2);border-radius:var(--radius);color:var(--text3);cursor:pointer;height:30px;font-size:13px;width:26px';
+    var G2='display:grid;grid-template-columns:55px 55px 65px 45px 60px 65px 45px 26px;gap:5px;margin-bottom:5px;align-items:center';
+    var d=document.createElement('div');
+    d.id='brf-route-row-'+i;
+    d.style.cssText='display:grid;grid-template-columns:110px 55px 45px 60px 65px 45px 26px;gap:5px;margin-bottom:5px;align-items:center';
+    d.innerHTML='<input style="'+I2+'" placeholder="GMP-CJU" oninput="BRF.routes['+i+'].route=this.value;saveBrf()">'+
+      '<input style="'+I2+'" placeholder="50" oninput="BRF.routes['+i+'].ete=this.value;saveBrf()" onblur="convBrfEte(this,'+i+')">'+
+      '<input style="'+I2+'" placeholder="350" oninput="BRF.routes['+i+'].alt=this.value;saveBrf()">'+
+      '<input style="'+I2+'" placeholder="189" oninput="BRF.routes['+i+'].pax=this.value;saveBrf()">'+
+      '<input style="'+I2+'" placeholder="ICN" oninput="BRF.routes['+i+'].altap=this.value;saveBrf()">'+
+      '<input style="'+I2+'" placeholder="23" oninput="BRF.routes['+i+'].gate=this.value;saveBrf()">'+
+      '<button onclick="delDynRoute('+i+')" style="'+IB2+'">×</button>';
+    extra.appendChild(d);
+  }
+}
+function delStaticRoute(i){
+  var row=document.getElementById('brf-route-row-'+i);
+  if(row){ row.querySelectorAll('input').forEach(function(el){el.value='';}); }
+  BRF.routes[i]={flt:'',route:'',ete:'',alt:'',pax:'',altap:'',gate:''};
+  saveBrf();
+}
+function delDynRoute(i){
+  var row=document.getElementById('brf-route-row-'+i);
+  if(row) row.remove();
+  BRF.routes.splice(i,1);
+  saveBrf();
+}
+function delBrfRoute(i){ delDynRoute(i); }
+function renderBrfRoutes(){
+  var inp = 'background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%';
+  var h = '';
+  BRF.routes.forEach(function(r,i){
+    h += '<div style="display:grid;grid-template-columns:55px 55px 65px 45px 60px 65px 45px 26px;gap:5px;margin-bottom:5px;align-items:center">';
+    h += '<input style="'+inp+'" value="'+r.flt+'" placeholder="7C101" oninput="BRF.routes['+i+'].flt=this.value;saveBrf()">';
+    h += '<input style="'+inp+'" value="'+r.route+'" placeholder="GMP-CJU" oninput="BRF.routes['+i+'].route=this.value;saveBrf()">';
+    h += '<input style="'+inp+'" value="'+r.ete+'" placeholder="50" oninput="BRF.routes['+i+'].ete=this.value;saveBrf()" onblur="convBrfEte(this,'+i+')">';
+    h += '<input style="'+inp+'" value="'+r.alt+'" placeholder="350" oninput="BRF.routes['+i+'].alt=this.value;saveBrf()">';
+    h += '<input style="'+inp+'" value="'+r.pax+'" placeholder="189" oninput="BRF.routes['+i+'].pax=this.value;saveBrf()">';
+    h += '<input style="'+inp+'" value="'+r.altap+'" placeholder="ICN" oninput="BRF.routes['+i+'].altap=this.value;saveBrf()">';
+    h += '<input style="'+inp+'" value="'+r.gate+'" placeholder="23" oninput="BRF.routes['+i+'].gate=this.value;saveBrf()">';
+    h += '<button onclick="delBrfRoute('+i+')" style="background:transparent;border:0.5px solid var(--border2);border-radius:var(--radius);color:var(--text3);cursor:pointer;height:32px;font-size:13px">×</button>';
+    h += '</div>';
+  });
+  var el = document.getElementById('brf-routes');
+  if(el) el.innerHTML = h;
+}
+
+function dynWxTempChange(el){
+  var i = parseInt(el.getAttribute('data-idx'));
+  var c = parseInt(el.value);
+  if(!BRF.wx[i]) BRF.wx[i]={};
+  BRF.wx[i].temp = c;
+  var out = document.getElementById('bwtempout'+i);
+  if(out) out.textContent = c+'°C → '+Math.round(c*9/5+32)+'°F';
+  saveBrf();
+}
+
+function addBrfWx(){
+  var i = BRF.wx.length;
+  BRF.wx.push({icao:'', temp:15, wx:'맑음'});
+  var extra = document.getElementById('brf-wx-rows-extra');
+  if(!extra) return;
+  var tOpts = '';
+  for(var t=-30;t<=50;t++) tOpts += '<option value="'+t+'"'+(t===15?' selected':'')+'>'+t+'°C</option>';
+  var wOpts = ['맑음','(다소)흐림','이슬비','소나기','눈','안개','강풍','황사'].map(function(w){
+    return '<option value="'+w+'"'+(w==='맑음'?' selected':'')+'>'+w+'</option>';
+  }).join('');
+  var SEL2 = 'width:100%;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);padding:8px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);-webkit-appearance:none;appearance:none;cursor:pointer';
+  var d = document.createElement('div');
+  d.id = 'brf-wx-row-'+i;
+  d.style.cssText = 'background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius-lg);padding:10px 12px;margin-bottom:8px';
+  d.innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
+    '<div style="font-size:var(--ui-label-fs);color:var(--text2);font-family:var(--mono)">공항 '+(i+1)+'</div>'+
+    '<input style="background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:90px" placeholder="RKSS" oninput="BRF.wx['+i+'].icao=this.value;saveBrf()">'+
+    '<button onclick="delDynWx('+i+')" style="background:transparent;border:0.5px solid var(--border2);border-radius:var(--radius);color:var(--text3);cursor:pointer;height:30px;font-size:13px;width:26px">×</button></div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+    '<div class="field"><label>기온 (°C)</label>'+
+    '<select id="bwtemp'+i+'" data-idx="'+i+'" style="'+SEL2+'" onchange="dynWxTempChange(this)">'+tOpts+'</select>'+
+    '<div class="picker-val" id="bwtempout'+i+'">15°C → 59°F</div></div>'+
+    '<div class="field"><label>날씨</label>'+
+    '<select id="bwwx'+i+'" style="'+SEL2+'" onchange="BRF.wx['+i+'].wx=this.value;saveBrf()">'+wOpts+'</select></div></div>';
+  extra.appendChild(d);
+}
+function delStaticWx(i){
+  var row=document.getElementById('brf-wx-row-'+i);
+  if(row){ row.querySelectorAll('input').forEach(function(el){el.value='';}); }
+  BRF.wx[i]={icao:'',wind:'',temp:'',vis:''};
+  saveBrf();
+}
+function delDynWx(i){
+  var row=document.getElementById('brf-wx-row-'+i);
+  if(row) row.remove();
+  BRF.wx.splice(i,1);
+  saveBrf();
+}
+function delBrfWx(i){ delDynWx(i); }
+function renderBrfWx(){
+  var inp = 'background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%';
+  var h = '';
+  BRF.wx.forEach(function(r,i){
+    h += '<div style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:8px 10px;margin-bottom:6px">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+    h += '<input style="'+inp+';width:90px" value="'+r.icao+'" placeholder="RKSS" oninput="BRF.wx['+i+'].icao=this.value;saveBrf()">';
+    h += '<button onclick="delBrfWx('+i+')" style="background:transparent;border:0.5px solid var(--border2);border-radius:var(--radius);color:var(--text3);cursor:pointer;padding:2px 8px;font-size:12px">×</button>';
+    h += '</div>';
+    h += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">';
+    h += '<div><div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:3px">바람(풍향/풍속)</div><input style="'+inp+'" value="'+r.wind+'" placeholder="27015kt" oninput="BRF.wx['+i+'].wind=this.value;saveBrf()"></div>';
+    h += '<div><div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:3px">기온/이슬점(°C)</div><input style="'+inp+'" value="'+r.temp+'" placeholder="22/18" oninput="BRF.wx['+i+'].temp=this.value;saveBrf()"></div>';
+    h += '<div><div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:3px">시정/날씨</div><input style="'+inp+'" value="'+r.vis+'" placeholder="9999/맑음" oninput="BRF.wx['+i+'].vis=this.value;saveBrf()"></div>';
+    h += '</div></div>';
+  });
+  var el = document.getElementById('brf-wx-rows');
+  if(el) el.innerHTML = h;
+}
+
+renderRoutes();
+load();
+renderAirportWx();
+setTimeout(function(){ initPickers(); }, 100);
+loadBrf();
+// Render after DOM is ready
+
+// restore font size
+try{var savedFs=localStorage.getItem('briefing_fs');if(savedFs)setFs(savedFs);else setFs('sm');}catch(e){setFs('sm');}
+try{
+  var savedTheme=localStorage.getItem('briefing_theme');
+  if(savedTheme==='dark'){
+    document.getElementById('theme-toggle').checked=true;
+    toggleTheme(true);
+  } else {
+    toggleTheme(false); // 라이트모드 변수 적용
+  }
+}catch(e){ toggleTheme(false); }
+buildIrr();
+buildTurb2();
+
+// ── SERVICE WORKER ─────────────────────────────────
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('./sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
