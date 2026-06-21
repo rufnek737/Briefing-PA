@@ -809,6 +809,27 @@ header{
         <div class="pa-text" id="tof-eng"></div>
       </div>
       <button class="copy-btn" id="cp-tof" onclick="copyPA('tof')">전체 복사</button>
+
+      <div class="section" style="margin-top:20px">
+        <div class="section-label">정정 방송 (Correction)</div>
+        <div class="g2" style="margin-bottom:8px">
+          <div class="field"><label>정정 항목 (국문)</label><input id="cor-item-kor" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="예) 도착 예정 시각" oninput="buildCor()"></div>
+          <div class="field"><label>정정 내용 (국문)</label><input id="cor-val-kor" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="예) 오후 3시 30분" oninput="buildCor()"></div>
+        </div>
+        <div class="g2" style="margin-bottom:8px">
+          <div class="field"><label>정정 항목 (영문)</label><input id="cor-item-eng" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="예) The arrival time" oninput="buildCor()"></div>
+          <div class="field"><label>정정 내용 (영문)</label><input id="cor-val-eng" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="예) 3:30 p.m." oninput="buildCor()"></div>
+        </div>
+      </div>
+      <div class="pa-box">
+        <div class="pa-box-head"><span class="pa-box-title">정정 PA — 국문</span><span class="lang-tag">KOR</span></div>
+        <div class="pa-text" id="cor-kor"></div>
+      </div>
+      <div class="pa-box">
+        <div class="pa-box-head"><span class="pa-box-title">정정 PA — 영문</span><span class="lang-tag">ENG</span></div>
+        <div class="pa-text" id="cor-eng"></div>
+      </div>
+      <button class="copy-btn" id="cp-cor" onclick="copyPA('cor')">전체 복사</button>
     </div>
 
   </div>
@@ -848,7 +869,7 @@ function showTab(n){
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
   currentTab=n;
   if(n===1){ initPickers(); buildPA(); }
-  if(n===2){buildIrr();buildTof();}
+  if(n===2){buildIrr();buildTof();buildCor();}
 }
 
 // ── CONVERSIONS ────────────────────────────────────
@@ -1474,6 +1495,18 @@ function buildIrr(){
 
   document.getElementById('irr-eng').innerHTML =
 'Dear passengers, this is the captain.\n\nOur departure is delayed '+hl(rEng[reason]||reason)+'.\n\nWe expect to depart '+minsEng+'.\n\nWe ask for your patience. Thank you.';
+}
+
+function buildCor(){
+  var iK = (document.getElementById('cor-item-kor')||{}).value||'';
+  var vK = (document.getElementById('cor-val-kor')||{}).value||'';
+  var iE = (document.getElementById('cor-item-eng')||{}).value||'';
+  var vE = (document.getElementById('cor-val-eng')||{}).value||'';
+  var korLine = (iK&&vK) ? hl(iK)+'은(는) '+hl(vK)+'입니다.' : hl('_________')+'은(는) '+hl('___________')+'입니다.';
+  var engLine = (iE&&vE) ? hl(iE)+' is '+hl(vE)+'.' : hl('___________')+' is '+hl('___________')+'.';
+  var kEl=document.getElementById('cor-kor'), eEl=document.getElementById('cor-eng');
+  if(kEl) kEl.innerHTML='손님 여러분, 저는 기장입니다.\n조금 전의 방송 내용 중 일부를 정정하겠습니다.\n\n'+korLine+'\n\n감사합니다.';
+  if(eEl) eEl.innerHTML='Dear passengers, this is your captain speaking.\n\nI would like to make a correction to the previous announcement.\n\n'+engLine+'\n\nThank you.';
 }
 
 function buildTof(){
