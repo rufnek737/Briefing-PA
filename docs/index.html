@@ -310,18 +310,18 @@ header{
       <div class="section">
         <div class="section-label">기본 정보</div>
         <div class="g3" style="margin-bottom:8px">
-          <div class="field"><label>날짜</label><input id="flt" type="date" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" oninput="saveBrf()"></div>
-          <div class="field"><label>편명</label><input id="bflt" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="1203" oninput="(function(){var v=this.value.replace(/^7C\s*/i,'');this.value=v?'7C'+v:'';saveBrf();}).call(this)"></div>
-          <div class="field"><label>부기장 이름</label><input id="bfo" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="홍길동" oninput="saveBrf()"></div>
+          <div class="field"><label>날짜</label><input id="flt" type="date" autocomplete="off" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" oninput="BRF.date=this.value;saveBrf()"></div>
+          <div class="field"><label>편명</label><input id="bflt" autocomplete="off" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="1203" oninput="(function(){var v=this.value.replace(/^7C\s*/i,'');this.value=v?'7C'+v:'';BRF.flt=this.value;saveBrf();}).call(this)"></div>
+          <div class="field"><label>부기장 이름</label><input id="bfo" autocomplete="off" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="홍길동" oninput="BRF.copilot=this.value;saveBrf()"></div>
         </div>
         <div class="g3" style="margin-bottom:8px">
-          <div class="field"><label>운항승무원</label><input id="bcrew-flt" type="number" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="2" oninput="saveBrf()"></div>
-          <div class="field"><label>객실승무원</label><input id="bcrew-cab" type="number" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="4" oninput="saveBrf()"></div>
-          <div class="field"><label>Extra Crew</label><input id="bcrew-ext" type="number" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="0" oninput="saveBrf()"></div>
+          <div class="field"><label>운항승무원</label><input id="bcrew-flt" type="number" autocomplete="off" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="2" oninput="BRF.crewFlt=this.value;saveBrf()"></div>
+          <div class="field"><label>객실승무원</label><input id="bcrew-cab" type="number" autocomplete="off" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="4" oninput="BRF.crewCab=this.value;saveBrf()"></div>
+          <div class="field"><label>Extra Crew</label><input id="bcrew-ext" type="number" autocomplete="off" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="0" oninput="BRF.crewExt=this.value;saveBrf()"></div>
         </div>
         <div class="g2">
-          <div class="field"><label>기번 HL</label><input id="breg" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="8xxx" oninput="saveBrf()"></div>
-          <div class="field"><label>MEL / CDL</label><input id="bmel" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="없음" oninput="saveBrf()"></div>
+          <div class="field"><label>기번 HL</label><input id="breg" autocomplete="off" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="8xxx" oninput="BRF.reg=this.value;saveBrf()"></div>
+          <div class="field"><label>MEL / CDL</label><input id="bmel" autocomplete="off" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="없음" oninput="BRF.mel=this.value;saveBrf()"></div>
         </div>
       </div>
 
@@ -337,12 +337,12 @@ header{
           <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">GATE</span>
         </div>
 <div style="display:grid;grid-template-columns:110px 55px 45px 60px 65px 45px 26px;gap:5px;margin-bottom:5px;align-items:center" id="brf-route-row-0">
-          <input style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" id="brou0" placeholder="GMP-CJU" oninput="BRF.routes[0].route=this.value;saveBrf()">
-          <input style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" id="bete0" placeholder="50" oninput="BRF.routes[0].ete=this.value;saveBrf()" onblur="convBrfEte(this,0)">
-          <input style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" id="balt0" placeholder="350" oninput="BRF.routes[0].alt=this.value;saveBrf()">
-          <input style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" id="bpax0" placeholder="189" oninput="BRF.routes[0].pax=this.value;saveBrf()">
-          <input style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" id="baltap0" placeholder="ICN" oninput="BRF.routes[0].altap=this.value;saveBrf()">
-          <input style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" id="bgate0" placeholder="23" oninput="BRF.routes[0].gate=this.value;saveBrf()">
+          <input style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" id="brou0" placeholder="GMP-CJU" autocomplete="off" oninput="BRF.routes[0].route=this.value;saveBrf()">
+          <input style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" id="bete0" placeholder="50" autocomplete="off" oninput="BRF.routes[0].ete=this.value;saveBrf()" onblur="convBrfEte(this,0)">
+          <input style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" id="balt0" placeholder="350" autocomplete="off" oninput="BRF.routes[0].alt=this.value;saveBrf()">
+          <input style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" id="bpax0" placeholder="189" autocomplete="off" oninput="BRF.routes[0].pax=this.value;saveBrf()">
+          <input style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" id="baltap0" placeholder="ICN" autocomplete="off" oninput="BRF.routes[0].altap=this.value;saveBrf()">
+          <input style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" id="bgate0" placeholder="23" autocomplete="off" oninput="BRF.routes[0].gate=this.value;saveBrf()">
           <button onclick="delStaticRoute(0)" style="background:transparent;border:0.5px solid var(--border2);border-radius:var(--radius);color:var(--text3);cursor:pointer;height:30px;font-size:13px;width:26px">×</button>
         </div>
         <div id="brf-routes-extra"></div>
@@ -575,21 +575,21 @@ header{
         <button class="btn-add" onclick="addBrfWx()">+ 공항 추가</button>
         <div class="field" style="margin-top:8px">
           <label>항로기상 및 TURB 예상 구간</label>
-          <input id="benroute" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="" oninput="saveBrf()">
+          <input id="benroute" autocomplete="off" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="" oninput="BRF.enroute=this.value;saveBrf()">
         </div>
         <div style="margin-top:8px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:8px 10px">
           <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:6px">기류 예상</div>
           <div style="display:flex;flex-direction:column;gap:4px">
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
-              <input type="radio" name="bturb" value="none" id="bturb-none" checked style="accent-color:var(--accent)" onchange="saveBrf()">
+              <input type="radio" name="bturb" value="none" id="bturb-none" checked style="accent-color:var(--accent)" onchange="BRF.turbLevel=this.value;saveBrf()">
               <span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono)">양호</span>
             </label>
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
-              <input type="radio" name="bturb" value="light" id="bturb-light" style="accent-color:var(--accent)" onchange="saveBrf()">
+              <input type="radio" name="bturb" value="light" id="bturb-light" style="accent-color:var(--accent)" onchange="BRF.turbLevel=this.value;saveBrf()">
               <span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono)">Light TURB — Fasten Belts Sign 1회, 라인업 금지, 화장실 사용</span>
             </label>
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
-              <input type="radio" name="bturb" value="mod" id="bturb-mod" style="accent-color:var(--accent)" onchange="saveBrf()">
+              <input type="radio" name="bturb" value="mod" id="bturb-mod" style="accent-color:var(--accent)" onchange="BRF.turbLevel=this.value;saveBrf()">
               <span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono)">MOD/SEV — Fasten Belts Sign 2회 + PA, 기류 안정 후 OFF / Call</span>
             </label>
           </div>
@@ -598,7 +598,7 @@ header{
           <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:4px">저시정 (550m 미만)</div>
           <div style="display:flex;gap:8px;align-items:center">
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
-              <input type="checkbox" id="blow-vis" style="width:14px;height:14px;accent-color:var(--accent)" onchange="saveBrf()">
+              <input type="checkbox" id="blow-vis" style="width:14px;height:14px;accent-color:var(--accent)" onchange="BRF.lowVis=this.checked;saveBrf()">
               <span style="font-size:var(--ui-fs);color:var(--text2);font-family:var(--mono)">해당 — 전자기기 사용중지 요청 (10,000ft ~ 활주로 개방)</span>
             </label>
           </div>
@@ -632,8 +632,8 @@ header{
           </div>
         </div>
         <div class="g2">
-          <div class="field"><label>위협수준 음어</label><input id="bthreat" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="예) BRAVO" oninput="saveBrf()"></div>
-          <div class="field"><label>Hijacking 음어</label><input id="bhijack" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="예) DELTA" oninput="saveBrf()"></div>
+          <div class="field"><label>위협수준 음어</label><input id="bthreat" autocomplete="off" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="예) BRAVO" oninput="BRF.threat=this.value;saveBrf()"></div>
+          <div class="field"><label>Hijacking 음어</label><input id="bhijack" autocomplete="off" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" placeholder="예) DELTA" oninput="BRF.hijack=this.value;saveBrf()"></div>
         </div>
       </div>
 
@@ -677,7 +677,7 @@ header{
             </div>
         </div>
         <div style="margin-top:8px">
-          <textarea id="briefing-note" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%;resize:vertical;min-height:56px;line-height:1.6;border-radius:var(--radius)" placeholder="비고 (직접 입력)..." oninput="saveBrf()"></textarea>
+          <textarea id="briefing-note" style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%;resize:vertical;min-height:56px;line-height:1.6" placeholder="비고 (직접 입력)..." oninput="BRF.note=this.value;saveBrf()"></textarea>
         </div>
       </div>
 
@@ -962,7 +962,7 @@ function pickTurb(el,v){
 }
 function pickSec(el,v,cls){
   document.querySelectorAll('.sec-btn').forEach(b=>{b.className='sec-btn'});
-  el.classList.add(cls); S.sec=v; save();
+  el.classList.add(cls); S.sec=v; BRF.secLevel=v; saveBrf();
 }
 function pickTurb2(el,v){
   document.querySelectorAll('#turb2-group .btn-tog').forEach(b=>b.classList.remove('sel'));
@@ -995,7 +995,7 @@ function renderRoutes(){
     h+='<button class="btn-del" onclick="delRoute('+i+')">×</button>';
     h+='</div>';
   });
-  document.getElementById('route-rows').innerHTML=h;
+  var rrEl=document.getElementById('route-rows');if(rrEl)rrEl.innerHTML=h;
 }
 function autoSync(i){
   if(i===0){
@@ -1572,11 +1572,11 @@ function copyPA(which){
 // ── PERSIST ────────────────────────────────────────
 function updateChk(){
   var all = document.querySelectorAll('#chk-list input[type=checkbox]');
-  var done = 0;
-  all.forEach(function(c){ if(c.checked) done++; });
+  var done = 0; var checks = {};
+  all.forEach(function(c){ if(c.checked) done++; checks[c.id]=c.checked; });
+  BRF.checks = checks; saveBrf();
   var prog = document.getElementById('chk-progress');
   if(prog) prog.textContent = done+' / '+all.length;
-  // color progress
   if(prog) prog.style.color = done===all.length ? 'var(--green)' : 'var(--text3)';
 }
 function resetChk(){
@@ -1699,25 +1699,88 @@ function convBrfEte(el, i){
 
 // ── BRF STATE ──
 var BRF = {
+  date:'', flt:'', copilot:'', crewFlt:'', crewCab:'', crewExt:'', reg:'', mel:'',
+  enroute:'', threat:'', hijack:'', note:'', secLevel:'B', turbLevel:'none', lowVis:false,
   routes: [{flt:'',route:'',ete:'',alt:'',pax:'',altap:'',gate:''}],
-  wx: [
-    {icao:'',wind:'',temp:'',vis:''},
-    {icao:'',wind:'',temp:'',vis:''}
-  ]
+  wx: [{icao:'',temp:15,wx:'맑음'},{icao:'',temp:15,wx:'맑음'}],
+  checks: {}
 };
 
 function saveBrf(){
   try{ localStorage.setItem('brf_state', JSON.stringify(BRF)); }catch(e){}
+  var now=new Date();
+  document.getElementById('save-time').textContent='자동 저장 '+now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
 }
+function setSafe(id,val){var el=document.getElementById(id);if(el&&val!=null)el.value=val;}
 function loadBrf(){
   try{
     var d = JSON.parse(localStorage.getItem('brf_state')||'null');
-    if(d){
-      Object.assign(BRF, d);
-      // ensure arrays have at least defaults
-      if(!BRF.routes||!BRF.routes.length) BRF.routes=[{flt:'',route:'',ete:'',alt:'',pax:'',altap:'',gate:''}];
-      if(!BRF.wx||BRF.wx.length<2) BRF.wx=[{icao:'',wind:'',temp:'',vis:''},{icao:'',wind:'',temp:'',vis:''}];
+    if(!d) return;
+    Object.assign(BRF, d);
+    if(!BRF.routes||!BRF.routes.length) BRF.routes=[{flt:'',route:'',ete:'',alt:'',pax:'',altap:'',gate:''}];
+    if(!BRF.wx||BRF.wx.length<2) BRF.wx=[{icao:'',temp:15,wx:'맑음'},{icao:'',temp:15,wx:'맑음'}];
+
+    // 기본 정보
+    setSafe('flt', BRF.date);
+    setSafe('bflt', BRF.flt);
+    setSafe('bfo', BRF.copilot);
+    setSafe('bcrew-flt', BRF.crewFlt);
+    setSafe('bcrew-cab', BRF.crewCab);
+    setSafe('bcrew-ext', BRF.crewExt);
+    setSafe('breg', BRF.reg);
+    setSafe('bmel', BRF.mel);
+    setSafe('benroute', BRF.enroute);
+    setSafe('bthreat', BRF.threat);
+    setSafe('bhijack', BRF.hijack);
+    setSafe('briefing-note', BRF.note);
+
+    // 운항 정보 (1번째 구간 static row)
+    if(BRF.routes[0]){
+      setSafe('brou0', BRF.routes[0].route);
+      setSafe('bete0', BRF.routes[0].ete);
+      setSafe('balt0', BRF.routes[0].alt);
+      setSafe('bpax0', BRF.routes[0].pax);
+      setSafe('baltap0', BRF.routes[0].altap);
+      setSafe('bgate0', BRF.routes[0].gate);
     }
+
+    // 기상 정보
+    [0,1].forEach(function(i){
+      if(!BRF.wx[i]) return;
+      setSafe('bwicao'+i, BRF.wx[i].icao);
+      var tEl=document.getElementById('bwtemp'+i);
+      if(tEl&&BRF.wx[i].temp!=null){ tEl.value=BRF.wx[i].temp; document.getElementById('bwtempout'+i).textContent=BRF.wx[i].temp+'°C → '+Math.round(BRF.wx[i].temp*9/5+32)+'°F'; }
+      var wEl=document.getElementById('bwwx'+i);
+      if(wEl&&BRF.wx[i].wx) wEl.value=BRF.wx[i].wx;
+    });
+
+    // 보안 등급
+    var secMap={G:'active-g',B:'active-b',Y:'active-y',O:'active-o',R:'active-r'};
+    document.querySelectorAll('.sec-btn').forEach(function(b){ b.className='sec-btn'; });
+    document.querySelectorAll('.sec-btn').forEach(function(b){
+      var oc=b.getAttribute('onclick')||'';
+      if(oc.indexOf("'"+BRF.secLevel+"'")>=0) b.classList.add(secMap[BRF.secLevel]||'active-b');
+    });
+
+    // 기류 예상
+    var trbEl=document.getElementById('bturb-'+(BRF.turbLevel||'none'));
+    if(trbEl) trbEl.checked=true;
+
+    // 저시정
+    var lvEl=document.getElementById('blow-vis');
+    if(lvEl) lvEl.checked=!!BRF.lowVis;
+
+    // 체크리스트
+    if(BRF.checks){
+      Object.keys(BRF.checks).forEach(function(id){
+        var el=document.getElementById(id); if(el) el.checked=BRF.checks[id];
+      });
+    }
+    // 체크리스트 카운터 업데이트
+    var allChk=document.querySelectorAll('#chk-list input[type=checkbox]');
+    var doneChk=0; allChk.forEach(function(c){if(c.checked)doneChk++;});
+    var prog=document.getElementById('chk-progress');
+    if(prog){ prog.textContent=doneChk+' / '+allChk.length; prog.style.color=doneChk===allChk.length?'var(--green)':'var(--text3)'; }
   }catch(e){}
 }
 
