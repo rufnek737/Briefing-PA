@@ -1,4 +1,4 @@
-const CACHE = 'briefing-v1';
+const CACHE = 'briefing-v2';
 const FILES = [
   './',
   './index.html',
