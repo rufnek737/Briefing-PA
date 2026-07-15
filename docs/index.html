@@ -1743,8 +1743,12 @@ function loadBrf(){
       setSafe('baltap0', BRF.routes[0].altap);
       setSafe('bgate0', BRF.routes[0].gate);
     }
+    // 추가 구간 행 복원
+    var extraRoutes=document.getElementById('brf-routes-extra');
+    if(extraRoutes) extraRoutes.innerHTML='';
+    for(var ri=1;ri<BRF.routes.length;ri++) renderDynRoute(ri);
 
-    // 기상 정보
+    // 기상 정보 (static 공항 1, 2)
     [0,1].forEach(function(i){
       if(!BRF.wx[i]) return;
       setSafe('bwicao'+i, BRF.wx[i].icao);
@@ -1753,6 +1757,10 @@ function loadBrf(){
       var wEl=document.getElementById('bwwx'+i);
       if(wEl&&BRF.wx[i].wx) wEl.value=BRF.wx[i].wx;
     });
+    // 추가 공항 행 복원
+    var extraWx=document.getElementById('brf-wx-rows-extra');
+    if(extraWx) extraWx.innerHTML='';
+    for(var wi=2;wi<BRF.wx.length;wi++) renderDynWx(wi);
 
     // 보안 등급
     var secMap={G:'active-g',B:'active-b',Y:'active-y',O:'active-o',R:'active-r'};
@@ -1784,26 +1792,29 @@ function loadBrf(){
   }catch(e){}
 }
 
+function renderDynRoute(i){
+  var r=BRF.routes[i]||{route:'',ete:'',alt:'',pax:'',altap:'',gate:''};
+  var extra=document.getElementById('brf-routes-extra');
+  if(!extra) return;
+  var I2='background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%';
+  var IB2='background:transparent;border:0.5px solid var(--border2);border-radius:var(--radius);color:var(--text3);cursor:pointer;height:30px;font-size:13px;width:26px';
+  var d=document.createElement('div');
+  d.id='brf-route-row-'+i;
+  d.style.cssText='display:grid;grid-template-columns:110px 55px 45px 60px 65px 45px 26px;gap:5px;margin-bottom:5px;align-items:center';
+  d.innerHTML=
+    '<input style="'+I2+'" autocomplete="off" value="'+(r.route||'')+'" placeholder="GMP-CJU" oninput="BRF.routes['+i+'].route=this.value;saveBrf()">'+
+    '<input style="'+I2+'" autocomplete="off" value="'+(r.ete||'')+'" placeholder="50" oninput="BRF.routes['+i+'].ete=this.value;saveBrf()" onblur="convBrfEte(this,'+i+')">'+
+    '<input style="'+I2+'" autocomplete="off" value="'+(r.alt||'')+'" placeholder="350" oninput="BRF.routes['+i+'].alt=this.value;saveBrf()">'+
+    '<input style="'+I2+'" autocomplete="off" value="'+(r.pax||'')+'" placeholder="189" oninput="BRF.routes['+i+'].pax=this.value;saveBrf()">'+
+    '<input style="'+I2+'" autocomplete="off" value="'+(r.altap||'')+'" placeholder="ICN" oninput="BRF.routes['+i+'].altap=this.value;saveBrf()">'+
+    '<input style="'+I2+'" autocomplete="off" value="'+(r.gate||'')+'" placeholder="23" oninput="BRF.routes['+i+'].gate=this.value;saveBrf()">'+
+    '<button onclick="delDynRoute('+i+')" style="'+IB2+'">×</button>';
+  extra.appendChild(d);
+}
 function addBrfRoute(){
-  var i = BRF.routes.length;
   BRF.routes.push({flt:'',route:'',ete:'',alt:'',pax:'',altap:'',gate:''});
-  var extra = document.getElementById('brf-routes-extra');
-  if(extra){
-    var I2='background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:6px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:100%';
-    var IB2='background:transparent;border:0.5px solid var(--border2);border-radius:var(--radius);color:var(--text3);cursor:pointer;height:30px;font-size:13px;width:26px';
-    var G2='display:grid;grid-template-columns:55px 55px 65px 45px 60px 65px 45px 26px;gap:5px;margin-bottom:5px;align-items:center';
-    var d=document.createElement('div');
-    d.id='brf-route-row-'+i;
-    d.style.cssText='display:grid;grid-template-columns:110px 55px 45px 60px 65px 45px 26px;gap:5px;margin-bottom:5px;align-items:center';
-    d.innerHTML='<input style="'+I2+'" placeholder="GMP-CJU" oninput="BRF.routes['+i+'].route=this.value;saveBrf()">'+
-      '<input style="'+I2+'" placeholder="50" oninput="BRF.routes['+i+'].ete=this.value;saveBrf()" onblur="convBrfEte(this,'+i+')">'+
-      '<input style="'+I2+'" placeholder="350" oninput="BRF.routes['+i+'].alt=this.value;saveBrf()">'+
-      '<input style="'+I2+'" placeholder="189" oninput="BRF.routes['+i+'].pax=this.value;saveBrf()">'+
-      '<input style="'+I2+'" placeholder="ICN" oninput="BRF.routes['+i+'].altap=this.value;saveBrf()">'+
-      '<input style="'+I2+'" placeholder="23" oninput="BRF.routes['+i+'].gate=this.value;saveBrf()">'+
-      '<button onclick="delDynRoute('+i+')" style="'+IB2+'">×</button>';
-    extra.appendChild(d);
-  }
+  renderDynRoute(BRF.routes.length-1);
+  saveBrf();
 }
 function delStaticRoute(i){
   var row=document.getElementById('brf-route-row-'+i);
@@ -1847,32 +1858,36 @@ function dynWxTempChange(el){
   saveBrf();
 }
 
-function addBrfWx(){
-  var i = BRF.wx.length;
-  BRF.wx.push({icao:'', temp:15, wx:'맑음'});
-  var extra = document.getElementById('brf-wx-rows-extra');
+function renderDynWx(i){
+  var r=BRF.wx[i]||{icao:'',temp:15,wx:'맑음'};
+  var extra=document.getElementById('brf-wx-rows-extra');
   if(!extra) return;
-  var tOpts = '';
-  for(var t=-30;t<=50;t++) tOpts += '<option value="'+t+'"'+(t===15?' selected':'')+'>'+t+'°C</option>';
-  var wOpts = ['맑음','(다소)흐림','이슬비','소나기','눈','안개','강풍','황사'].map(function(w){
-    return '<option value="'+w+'"'+(w==='맑음'?' selected':'')+'>'+w+'</option>';
-  }).join('');
-  var SEL2 = 'width:100%;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);padding:8px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);-webkit-appearance:none;appearance:none;cursor:pointer';
-  var d = document.createElement('div');
-  d.id = 'brf-wx-row-'+i;
-  d.style.cssText = 'background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius-lg);padding:10px 12px;margin-bottom:8px';
-  d.innerHTML =
+  var tOpts='';
+  for(var t=-30;t<=50;t++) tOpts+='<option value="'+t+'"'+(t==r.temp?' selected':'')+'>'+t+'°C</option>';
+  var wxList=['맑음','(다소)흐림','이슬비','소나기','눈','안개','강풍','황사'];
+  var wOpts=wxList.map(function(w){return '<option value="'+w+'"'+(w===r.wx?' selected':'')+'>'+w+'</option>';}).join('');
+  var SEL2='width:100%;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);padding:8px 10px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);-webkit-appearance:none;appearance:none;cursor:pointer';
+  var tempF=Math.round((r.temp||15)*9/5+32);
+  var d=document.createElement('div');
+  d.id='brf-wx-row-'+i;
+  d.style.cssText='background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius-lg);padding:10px 12px;margin-bottom:8px';
+  d.innerHTML=
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
     '<div style="font-size:var(--ui-label-fs);color:var(--text2);font-family:var(--mono)">공항 '+(i+1)+'</div>'+
-    '<input style="background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:90px" placeholder="RKSS" oninput="BRF.wx['+i+'].icao=this.value;saveBrf()">'+
+    '<input autocomplete="off" style="background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:var(--ui-fs);color:var(--text);width:90px" value="'+(r.icao||'')+'" placeholder="RKSS" oninput="BRF.wx['+i+'].icao=this.value;saveBrf()">'+
     '<button onclick="delDynWx('+i+')" style="background:transparent;border:0.5px solid var(--border2);border-radius:var(--radius);color:var(--text3);cursor:pointer;height:30px;font-size:13px;width:26px">×</button></div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
     '<div class="field"><label>기온 (°C)</label>'+
     '<select id="bwtemp'+i+'" data-idx="'+i+'" style="'+SEL2+'" onchange="dynWxTempChange(this)">'+tOpts+'</select>'+
-    '<div class="picker-val" id="bwtempout'+i+'">15°C → 59°F</div></div>'+
+    '<div class="picker-val" id="bwtempout'+i+'">'+(r.temp||15)+'°C → '+tempF+'°F</div></div>'+
     '<div class="field"><label>날씨</label>'+
     '<select id="bwwx'+i+'" style="'+SEL2+'" onchange="BRF.wx['+i+'].wx=this.value;saveBrf()">'+wOpts+'</select></div></div>';
   extra.appendChild(d);
+}
+function addBrfWx(){
+  BRF.wx.push({icao:'',temp:15,wx:'맑음'});
+  renderDynWx(BRF.wx.length-1);
+  saveBrf();
 }
 function delStaticWx(i){
   var row=document.getElementById('brf-wx-row-'+i);
