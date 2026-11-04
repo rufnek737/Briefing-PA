@@ -1,5 +1,5 @@
-const CACHE = 'briefing-v4';
-const STATIC = ['./manifest.json'];
+const CACHE = 'briefing-v5';
+const STATIC = ['./manifest.json', './index.html'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(STATIC)));
@@ -16,14 +16,20 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // 페이지 네비게이션 (index.html 포함): 항상 네트워크 우선
   if (e.request.mode === 'navigate') {
+    // 온라인: 네트워크에서 받아서 캐시 갱신 후 반환
+    // 오프라인: 캐시에서 반환
     e.respondWith(
-      fetch(e.request).catch(() => caches.match('./index.html'))
+      fetch(e.request)
+        .then(res => {
+          var clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+          return res;
+        })
+        .catch(() => caches.match(e.request))
     );
     return;
   }
-  // 나머지: 캐시 우선, 없으면 네트워크
   e.respondWith(
     caches.match(e.request).then(r => r || fetch(e.request))
   );
