@@ -257,6 +257,20 @@ header{
 .panel{display:none}
 .panel.active{display:block}
 
+/* ── 색인 TAB ── */
+.idx-cat-btn{padding:4px 10px;border:0.5px solid var(--border2);border-radius:20px;background:transparent;cursor:pointer;font-family:var(--sans);font-size:11px;color:var(--text2);white-space:nowrap;transition:all .15s}
+.idx-cat-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.idx-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);margin-bottom:10px;overflow:hidden}
+.idx-card-head{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:0.5px solid var(--border);background:var(--bg3)}
+.idx-sec{font-family:var(--mono);font-size:10px;color:var(--text3);min-width:30px}
+.idx-title{flex:1;font-size:13px;font-weight:500;color:var(--text)}
+.idx-cat{font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(59,130,246,.12);color:var(--accent);border:0.5px solid rgba(59,130,246,.3)}
+.idx-body{padding:10px 12px}
+.idx-lang-row{display:flex;gap:8px;align-items:flex-start}
+.idx-script{font-size:12px;color:var(--text2);line-height:1.6;flex:1}
+.idx-copy-btn{display:block;width:calc(100% - 24px);margin:8px 12px 10px;padding:7px;background:transparent;border:0.5px solid var(--border2);border-radius:var(--radius);font-family:var(--mono);font-size:11px;color:var(--text3);cursor:pointer;transition:all .15s}
+.idx-copy-btn:active{background:var(--bg3)}
+
 /* dark-mode overrides */
 .dark-mode .scroll-picker::before{background:linear-gradient(to bottom,var(--bg3),transparent)}
 .dark-mode .scroll-picker::after{background:linear-gradient(to top,var(--bg3),transparent)}
@@ -299,6 +313,7 @@ header{
     <button class="tab active" onclick="showTab(0)">브리핑</button>
     <button class="tab" onclick="showTab(1)">PA 변환</button>
     <button class="tab" onclick="showTab(2)">Irregular</button>
+    <button class="tab" onclick="showTab(3)">색인</button>
   </div>
 
   <div class="content">
@@ -839,6 +854,16 @@ header{
       <button class="copy-btn" id="cp-cor" onclick="copyPA('cor')">전체 복사</button>
     </div>
 
+    <!-- ④ 색인 -->
+    <div class="panel" id="panel-3">
+      <div style="padding:4px 0 12px">
+        <input id="idx-search" type="search" placeholder="방송문 검색... (예: 지연, turbulence, 화재)" oninput="filterIdx(this.value)"
+          style="width:100%;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:9px 12px;font-family:var(--sans);font-size:var(--ui-fs);color:var(--text);outline:none">
+      </div>
+      <div id="idx-category-bar" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px"></div>
+      <div id="idx-list"></div>
+    </div>
+
   </div>
 
   <div class="save-bar">
@@ -857,6 +882,7 @@ function showTab(n){
   currentTab=n;
   if(n===1){ initPickers(); buildPA(); }
   if(n===2){buildIrr();buildTof();buildCor();}
+  if(n===3){buildIdxCategoryBar();filterIdx(document.getElementById('idx-search').value);}
 }
 
 // ── CONVERSIONS ────────────────────────────────────
@@ -1627,6 +1653,255 @@ try{
   }
 }catch(e){ toggleTheme(false); }
 buildIrr();
+
+// ── 색인 (INDEX) ────────────────────────────────────
+var IDX_DATA = [
+  // ── Chapter 2: WELCOME ──
+  {ch:'2', sec:'2.4', cat:'환영', title:'국내선 웰컴 방송', tags:'welcome 환영 국내',
+   kor:'손님 여러분, 안녕하십니까? 저는 여러분을 ___공항까지 모시고 가는 기장 ___입니다. 오늘 저희 제주항공을 이용해 주셔서 감사합니다. 현재 비행기는 순항 중이며, 목적지까지의 비행시간은 약 ___시간 ___분 예정입니다. 저와 저희 승무원들은 여러분의 안전하고 쾌적한 비행을 위해 최선을 다하겠습니다. 감사합니다.',
+   eng:"Good morning(/afternoon/evening), dear passengers. This is your captain speaking. Welcome aboard JEJUair flight bound for ___ airport. We expect to arrive at ___ airport in approximately ___hours and ___minutes. We hope you enjoy your flight. Thank you."},
+  {ch:'2', sec:'2.5', cat:'환영', title:'국제선 웰컴 방송', tags:'welcome 환영 국제',
+   kor:'손님 여러분, 안녕하십니까? 저는 여러분을 ___공항까지 모시고 가는 기장 ___입니다. 오늘 저희 제주항공을 이용해 주셔서 감사합니다. 현재 비행기는 순항 중이며, 목적지까지의 비행시간은 약 ___시간 ___분 예정입니다. 목적지의 현지 시각은 한국 시각보다 ___시간 (빠릅니다/느립니다). 저와 저희 승무원들은 여러분의 안전하고 쾌적한 비행을 위해 최선을 다하겠습니다. 감사합니다.',
+   eng:"Good morning(/afternoon/evening), dear passengers. This is your captain speaking. Welcome aboard JEJUair flight bound for ___ international airport. We expect to arrive at ___ international airport in approximately ___hours and ___minutes. Local time at our destination is ___hours (ahead/behind) of Korean time. We hope you enjoy your flight. Thank you."},
+  {ch:'2', sec:'2.6', cat:'환영', title:'심야 비행 웰컴 방송', tags:'welcome 환영 심야 night',
+   kor:'손님 여러분, 저는 기장입니다. 목적지 ___공항까지의 비행시간은 약 ___시간 ___분 예정입니다. 감사합니다.',
+   eng:"Dear passengers, this is your captain. We expect to arrive at ___ airport in approximately ___hours and ___minutes. Thank you."},
+  {ch:'2', sec:'2.7', cat:'환영', title:'도착 방송', tags:'도착 arrival landing',
+   kor:'손님 여러분, 저는 기장입니다. 우리 비행기는 앞으로 약___분 후에 ___국제공항에 착륙 예정입니다. 목적지의 현지 시각은 ___(오전/오후) ___시 ___분입니다. 착륙 준비를 위해 좌석에 앉아 안전벨트를 착용하여 주시기 바랍니다. 감사합니다.',
+   eng:"Dear passengers, this is your captain speaking. We expect to land at ___ international airport in about ___minutes. Local time at our destination is ___ (a.m./p.m.). For landing preparations, please return to your seat and fasten your seatbelt. Thank you."},
+  {ch:'2', sec:'2.3', cat:'환영', title:'정정 방송', tags:'정정 correction',
+   kor:'손님 여러분, 저는 기장입니다. 조금 전의 방송 내용 중 일부를 정정하겠습니다. ___을(를) ___으로 정정합니다. 감사합니다.',
+   eng:"Dear passengers, this is your captain speaking. I would like to make a correction to the previous announcement. ___ should be ___. Thank you."},
+  {ch:'2', sec:'2.8', cat:'환영', title:'GREEN CREW 국내선 방송', tags:'green eco 환경',
+   kor:'손님 여러분, 저는 기장입니다. 오늘 저희 제주항공은 탄소 배출을 줄이기 위한 그린 크루 운항을 실시하고 있습니다. 최적의 비행 고도와 속도를 유지하여 연료를 절감하고 있습니다. 여러분의 협조에 감사드립니다.',
+   eng:"Dear passengers, this is your captain speaking. Today, JEJUair is operating a Green Crew flight to reduce carbon emissions. We are maintaining optimum altitude and speed to save fuel. Thank you for your cooperation."},
+
+  // ── Chapter 3: IRREGULAR ──
+  {ch:'3', sec:'3.1', cat:'지연', title:'출발 지연', tags:'delay 지연 departure',
+   kor:'손님 여러분, 저는 기장입니다. 현재 우리 비행기는 [공항 혼잡/항로 혼잡(ATC)/기상/제설/항공기 점검/승객 미탑승/수하물 탑재] 관계로 출발이 지연되고 있습니다. 약 ___분 후에 출발할 예정이오니 양해 부탁드립니다. 감사합니다.',
+   eng:"Dear passengers, this is your captain speaking. Our departure is delayed as(/due to) [airport congestion/ATC/weather/snow removal/aircraft maintenance/passenger/baggage loading]. We expect to depart in about ___minutes. We apologize for the inconvenience. Thank you."},
+  {ch:'3', sec:'3.2', cat:'지연', title:'제빙/서리 제거 작업', tags:'deicing snow frost 제빙 제설',
+   kor:'손님 여러분, 저는 기장입니다. 우리는 현 위치에서 항공기 제설(/서리제거) 작업을 수행할 예정입니다. 작업이 완료되는 대로 출발하겠습니다. 감사합니다.',
+   eng:"Dear passengers, this is your captain speaking. We need to remove Snow(/frost) from our aircraft. We will depart as soon as this is completed. Thank you for your patience."},
+  {ch:'3', sec:'3.3', cat:'지연', title:'추가 지연', tags:'delay 추가 지연 continued',
+   kor:'손님 여러분, 저는 기장입니다. 우리 비행기는 [공항 혼잡/항로 혼잡(ATC)/기상/제설/항공기 점검] 관계로 출발이 (계속해서) 지연되고 있습니다. 약 ___분 후에 출발 예정입니다. 불편을 드려 죄송합니다.',
+   eng:"Dear passengers, this is your captain speaking. Our departure continues to be delayed due to [congestion/ATC/weather/snow removal/maintenance]. We expect to depart in approximately ___minutes. We sincerely apologize for the inconvenience."},
+  {ch:'3', sec:'3.4', cat:'지연', title:'지연 종료 후 출발', tags:'departure ready clearance',
+   kor:'손님 여러분, 저는 기장입니다. [관제탑으로부터 허가를 받아 / 공항의 기상 상태가 좋아져 / 항공기 점검이 완료돼] 잠시 후 출발하겠습니다. 오랫동안 기다려 주셔서 감사합니다.',
+   eng:"Dear passengers, this is your captain speaking. [We have just received departure clearance / The weather has improved / The technical check is complete] and we will be departing shortly. Thank you for your patience."},
+  {ch:'3', sec:'3.5', cat:'지연', title:'이륙 지연', tags:'takeoff delay 이륙 지연',
+   kor:'손님 여러분, 저는 기장입니다. 우리 비행기는 [이착륙 항공기 혼잡/항로 간격 확보(ATC)/기상/활주로 변경/항공기 추가 점검] 관계로 이륙이 늦어지고 있습니다. 현재 ___번째 이륙 순서를 기다리고 있습니다. 양해 부탁드립니다.',
+   eng:"Dear passengers, this is your captain speaking. Our take off is being delayed due to [traffic/ATC/weather/runway change/maintenance]. We are currently number ___ for departure. We appreciate your understanding."},
+  {ch:'3', sec:'3.6', cat:'지연', title:'이륙 추가 지연', tags:'takeoff continued delay',
+   kor:'손님 여러분, 저는 기장입니다. 우리 비행기는 이륙이 계속해서 지연되고 있습니다. 예상 출발 시각은 약 ___분 후입니다. 불편을 드려 죄송합니다.',
+   eng:"Dear passengers, this is your captain speaking. Our take-off continues to be delayed. We expect to depart in approximately ___minutes. We sincerely apologize for the inconvenience."},
+  {ch:'3', sec:'3.7', cat:'회항/복귀', title:'주기장 복귀 (Ramp Return)', tags:'ramp return 복귀 주기장',
+   kor:'손님 여러분, 저는 기장입니다. 우리 비행기는 [항공기 점검/승객 하기/보안 점검] 관계로 주기장으로 돌아가게 되었습니다. 협조해 주셔서 감사합니다.',
+   eng:"Dear passengers, this is your captain speaking. We are returning to the gate(/parking area) due to [technical reasons/passenger offloading/security check]. We appreciate your understanding."},
+  {ch:'3', sec:'3.8', cat:'하기', title:'하기 (전원 하기)', tags:'deboard 하기 exit',
+   kor:'손님 여러분, 저는 기장입니다. 현 상황으로 인해 손님들께서 내리시는 것으로 결정 되었습니다. 승무원의 안내에 따라 내려 주시기 바랍니다. 협조해 주셔서 감사합니다.',
+   eng:"Dear passengers, this is your captain speaking. All passengers are requested to exit the aircraft at this time. Please follow the instructions of the cabin crew. Thank you for your cooperation."},
+  {ch:'3', sec:'3.9', cat:'하기', title:'보안 점검 하기', tags:'security check 보안 하기',
+   kor:'손님 여러분, 저는 기장입니다. 탑승했던 일부 승객이 내리셔서 항공법에 따라 항공기 보안 점검을 다시 실시할 예정입니다. 승무원의 안내에 따라 잠시 내려 주시기 바랍니다.',
+   eng:"Dear passengers, this is your captain speaking. This aircraft requires another security check because several passengers have requested to leave. Please follow the instructions of the cabin crew."},
+  {ch:'3', sec:'3.10', cat:'하기', title:'항공기 교체', tags:'aircraft change 교체',
+   kor:'손님 여러분, 저는 기장입니다. 우리 비행기는 점검 결과 다른 항공기로 교체하여 운항하게 되었습니다. 잠시 후 다른 비행기로 이동하실 예정입니다. 불편을 드려 대단히 죄송합니다.',
+   eng:"Dear passengers, this is your captain speaking. Our mechanics have determined that maintenance is required on this aircraft. In an effort to minimize your delay, we will transfer to another aircraft. We sincerely apologize for the inconvenience."},
+  {ch:'3', sec:'3.11', cat:'취소', title:'운항 취소', tags:'cancel 취소 cancellation',
+   kor:'손님 여러분, 저는 기장입니다. [기상/항공기 점검/항로] 관계로 운항을 취소하기로 결정 하였습니다. 불편을 드려 대단히 죄송합니다.',
+   eng:"Dear passengers, this is your captain speaking. Due to [weather/aircraft maintenance/route], we will not be able to operate our flight. We sincerely apologize for the inconvenience."},
+  {ch:'3', sec:'3.12', cat:'도착', title:'주기 지연', tags:'parking delay 주기 도착',
+   kor:'손님 여러분, 저는 기장입니다. 우리 비행기는 [주기장 사용 불가/앞 비행기 주기 중] 관계로 주기에 잠시 지연이 있겠습니다. 잠시만 기다려 주시기 바랍니다.',
+   eng:"Dear passengers, this is your captain speaking. There is going to be a short delay in parking because [the gate is currently occupied/the previous aircraft is still at our gate]. We apologize for the inconvenience."},
+  {ch:'3', sec:'3.13', cat:'도착', title:'하기 지연', tags:'deplaning delay 하기 도착',
+   kor:'손님 여러분, 저는 기장입니다. 비행기에서 내리시는 것이 잠시 지연되고 있습니다. [게이트가 사용 중/서비스 차량 대기 중] 잠시만 기다려 주시기 바랍니다.',
+   eng:"Dear passengers, this is your captain speaking. We have arrived at the gate, but there is going to be a short delay in deplaning due to [gate occupancy/ground service]. We ask for your patience."},
+  {ch:'3', sec:'3.14', cat:'지연', title:'공중 대기 (Holding)', tags:'holding 공중 대기',
+   kor:'손님 여러분, 저는 기장입니다. 관제탑으로부터 [기상/공항 혼잡/활주로 작업] 관계로 약___분 정도 대기해 달라는 요청을 받았습니다. 좌석에 앉아 안전벨트를 착용하여 주시기 바랍니다.',
+   eng:"Dear passengers, this is your captain speaking. Air Traffic Control has instructed us to stay in a holding pattern (for about ___minutes) due to [weather/traffic/runway]. Please remain seated with your seatbelt fastened."},
+  {ch:'3', sec:'3.15', cat:'지연', title:'추가 공중 대기', tags:'holding continued 대기 추가',
+   kor:'손님 여러분, 저는 기장입니다. [기상/공항 혼잡/활주로 작업] 관계로 대기가 계속되고 있습니다. 계속 좌석에 앉아 안전벨트를 착용하여 주시기 바랍니다.',
+   eng:"Dear passengers, this is your captain speaking. We are still holding because of [weather/traffic/runway operations]. Please remain seated with your seatbelt fastened."},
+  {ch:'3', sec:'3.16', cat:'지연', title:'공중 대기 종료', tags:'holding end 대기 종료',
+   kor:'손님 여러분, 저는 기장입니다. [관제탑으로부터 허가를 받아 / 활주로 제설 작업이 완료되어 / 기상 상태가 좋아져서] 착륙 준비를 하겠습니다.',
+   eng:"Dear passengers, this is your captain speaking. [We have received landing clearance / Snow removal from the runway has been completed / The weather has improved] and we are now proceeding to land."},
+
+  // ── Chapter 4: DIVERSION ──
+  {ch:'4', sec:'4.1', cat:'회항', title:'회항', tags:'diversion 회항 divert',
+   kor:'손님 여러분, 저는 기장입니다. [보안상/위급 환자/기술적/기상/활주로 폐쇄/지상 혼잡] 이유로 우리 비행기는 ___(___)공항으로 회항할 예정입니다. 약 ___시간 ___분 후에 도착 예정입니다. 협조해 주셔서 감사합니다.',
+   eng:"Dear passengers, this is your captain speaking. Due to [security/medical emergency/technical/weather/closed runway/congestion] reasons, we are diverting to ___airport. We expect to arrive in approximately ___hour(s) and ___minutes. We appreciate your understanding."},
+  {ch:'4', sec:'4.2', cat:'회항', title:'회항 취소', tags:'diversion cancelled 회항 취소',
+   kor:'손님 여러분, 저는 기장입니다. 회항이 필요 없게 되어 ___공항으로 계속 비행 하겠습니다. 걱정하지 않으셔도 됩니다. 감사합니다.',
+   eng:"Dear passengers, this is your captain speaking. The diversion is no longer required and we are continuing to ___airport. Please do not be concerned. Thank you."},
+  {ch:'4', sec:'4.3a', cat:'회항', title:'대체공항 착륙 후 — 출발 확정', tags:'diversion landed departure confirmed',
+   kor:'손님 여러분, 저는 기장입니다. 우리 비행기는 ___공항에 착륙하였습니다. 준비가 완료되는 대로 ___공항으로 출발할 예정입니다. 더 자세한 사항은 추후 안내하겠습니다.',
+   eng:"Dear passengers, this is your captain speaking. We have landed at ___airport. We will depart for ___airport as soon as we are prepared. Further details will be announced shortly."},
+  {ch:'4', sec:'4.3b', cat:'회항', title:'대체공항 착륙 후 — 출발 불확실', tags:'diversion landed uncertain',
+   kor:'손님 여러분, 저는 기장입니다. 현재 ___공항으로의 출발 여부를 확인하고 있습니다. 가능한 빨리 안내 드리겠습니다.',
+   eng:"Dear passengers, this is your captain speaking. We are currently checking on the possibility of departing to ___airport. We will inform you as soon as possible."},
+  {ch:'4', sec:'4.3c', cat:'회항', title:'대체공항 착륙 후 — 출발 불가', tags:'diversion landed impossible',
+   kor:'손님 여러분, 저는 기장입니다. 아쉽게도 오늘 ___공항으로의 비행이 불가하게 되었습니다. 지상 직원의 안내에 따라 주시기 바랍니다. 불편을 드려 죄송합니다.',
+   eng:"Dear passengers, this is your captain speaking. Unfortunately, we will not be able to continue to ___airport today. Please follow the instructions of our ground staff. We sincerely apologize for the inconvenience."},
+  {ch:'4', sec:'4.4', cat:'회항', title:'회항 후 출발', tags:'diversion departure ready',
+   kor:'손님 여러분, 저는 기장입니다. 우리 비행기는 출발 준비가 완료되어 잠시 후 ___공항으로 이륙할 예정입니다. 오랫동안 기다려 주셔서 감사합니다.',
+   eng:"Dear passengers, this is your captain speaking. Our preparations are complete and we expect to depart for ___airport shortly. Thank you for your long wait."},
+
+  // ── Chapter 5: GO AROUND & RTO ──
+  {ch:'5', sec:'5.1', cat:'복행/RTO', title:'복행 (Go-Around)', tags:'go around 복행 missed approach',
+   kor:'손님 여러분, 저는 기장입니다. 우리 비행기는 [불안정 기류/활주로 미확인/관제탑 지시/기술적 이유/안정된 착륙 불보장] 관계로 착륙을 시도하지 않고 상승했습니다. 다시 착륙을 시도하겠습니다.',
+   eng:"Dear passengers, this is your captain speaking. We performed a go-around due to [turbulence/runway not sighted/ATC instruction/technical reason/unstable approach]. We will make another approach."},
+  {ch:'5', sec:'5.2', cat:'복행/RTO', title:'복행 착륙 후 설명', tags:'go around after landing explanation',
+   kor:'손님 여러분, 저는 기장입니다. 조금 전 착륙이 늦어진 것에 대해 설명 드리겠습니다. 우리 비행기는 [불안정 기류/활주로 미확인/관제탑 지시] 관계로 복행을 실시하였습니다. 안전을 위한 조치였으며, 이해해 주시기 바랍니다.',
+   eng:"Dear passengers, this is your captain speaking. I would like to explain the reason for our delayed landing. Our landing was delayed because we performed a go-around due to [turbulence/runway not sighted/ATC instruction]. This was done for safety. Thank you for your understanding."},
+  {ch:'5', sec:'5.3', cat:'복행/RTO', title:'이륙 중단 (RTO)', tags:'RTO rejected takeoff 이륙 중단',
+   kor:'손님 여러분, 저는 기장입니다. 우리 비행기는 [항공기 기술적/기상/활주로상 장애물] 관계로 이륙을 중지 하였습니다. 현재 비행기를 점검하고 있으며, 추후 안내 드리겠습니다.',
+   eng:"Dear passengers, this is your captain speaking. We were unable to takeoff due to [technical/weather/runway obstacle]. We are currently checking the aircraft and will keep you informed."},
+  {ch:'5', sec:'5.4', cat:'복행/RTO', title:'RTO 후 재이륙', tags:'RTO retry takeoff',
+   kor:'손님 여러분, 저는 기장입니다. [비행기 점검 결과 문제가 해결되어 / 기상 상태가 좋아져서] 잠시 후 이륙하겠습니다. 오래 기다려 주셔서 감사합니다.',
+   eng:"Dear passengers, this is your captain speaking. [Because the problem with the aircraft has been cleared / the weather at the airport has improved], we will be taking off shortly. Thank you for your patience."},
+  {ch:'5', sec:'5.5', cat:'복행/RTO', title:'RTO 후 주기장 복귀', tags:'RTO ramp return',
+   kor:'손님 여러분, 저는 기장입니다. 우리 비행기는 [점검을 위해 / 재급유를 위해] 주기장으로 돌아가게 되었습니다. 양해 부탁드립니다.',
+   eng:"Dear passengers, this is your captain speaking. We are returning to the gate(/parking area) due to [technical reasons / for refueling]. We appreciate your understanding."},
+
+  // ── Chapter 6: TURBULENCE ──
+  {ch:'6', sec:'6.1a', cat:'난기류', title:'난기류 예상 — 사전 안내', tags:'turbulence 난기류 예상 approaching',
+   kor:'손님 여러분, 저는 기장입니다. 우리 비행기는 잠시 후 기류 변화가 심한 지역을 통과할 예정입니다. 안전을 위해 좌석으로 돌아가 안전벨트를 착용하여 주시기 바랍니다.',
+   eng:"Dear passengers, this is your captain speaking. We are approaching an area of reported turbulence. Please return to your seat and fasten your seatbelt."},
+  {ch:'6', sec:'6.1b', cat:'난기류', title:'난기류 — 현재 진입', tags:'turbulence 난기류 experiencing',
+   kor:'손님 여러분, 저는 기장입니다. 우리 비행기는 지금 기류의 영향으로 흔들리고 있습니다. 안전벨트 사인이 켜져 있는 동안 좌석에 앉아 안전벨트를 착용하여 주시기 바랍니다.',
+   eng:"Dear passengers, this is your captain speaking. We are experiencing turbulence. Please remain seated with your seatbelt fastened while the seatbelt sign is on."},
+  {ch:'6', sec:'6.1c', cat:'난기류', title:'난기류 — 지속 중', tags:'turbulence 난기류 continuing',
+   kor:'손님 여러분, 저는 기장입니다. 기류의 영향으로 흔들림이 좀 더 지속될 것으로 예상됩니다. 계속해서 좌석에 앉아 안전벨트를 착용하여 주시기 바랍니다.',
+   eng:"Dear passengers, this is your captain speaking. We anticipate the turbulence to continue for a little while. Please remain seated with your seatbelt fastened."},
+  {ch:'6', sec:'6.1d', cat:'난기류', title:'난기류 — 재진입 예상', tags:'turbulence 난기류 again',
+   kor:'손님 여러분, 저는 기장입니다. 우리 비행기는 잠시 후에 다시 기류 변화가 심한 지역을 지나갈 예정입니다. 계속 안전벨트를 착용하여 주시기 바랍니다.',
+   eng:"Dear passengers, this is your captain speaking. We are still in an area of anticipated turbulence. Please remain seated with your seatbelt fastened."},
+  {ch:'6', sec:'6.2', cat:'난기류', title:'기체 동요 (급격한 난기류)', tags:'turbulence upset severe 기체 동요',
+   kor:'손님 여러분, 저는 기장입니다. 예상치 못한 급격한 기류 변화로 인해 기체가 (많이) 흔들렸습니다. 불편함을 드린 점 사과 드리며, 도움이 필요하신 분은 승무원에게 말씀해 주시기 바랍니다.',
+   eng:"Dear passengers, this is your captain speaking. We have encountered unexpected turbulence. We apologize for the discomfort and ask that you notify a crew member if you require any assistance. We appreciate your understanding."},
+  {ch:'6', sec:'6.3', cat:'난기류', title:'번개 충격', tags:'lightning 번개 충격',
+   kor:'손님 여러분, 저는 기장입니다. 조금 전 번개로 인해 충격음과 함께 기체가 흔들렸습니다. 우리 비행기는 방전 장치를 갖추고 있어 안전 운항에는 전혀 문제가 없습니다.',
+   eng:"Dear passengers, this is your captain speaking. The sudden turbulence, flash and booming sound was due to lightning. However, our aircraft has not been affected as it is equipped with a lightning protection system."},
+  {ch:'6', sec:'6.4', cat:'기내 소란', title:'기내 난동 — 출발 전', tags:'disturbance 난동 passenger',
+   kor:'손님 여러분, 저는 기장입니다. 지금 일부 손님의 소동으로 출발이 지연되고 있습니다. 여러분의 양해를 부탁드립니다.',
+   eng:"Dear passengers, this is your captain speaking. Our departure is delayed due to an issue involving a passenger. We appreciate your understanding."},
+  {ch:'6', sec:'6.5', cat:'기내 소란', title:'기내 난동 — 주기장 복귀', tags:'disturbance 난동 ramp return',
+   kor:'손님 여러분, 저는 기장입니다. 지금 우리 비행기는 일부 승객을 내려드리기 위해 주기장으로 되돌아 가겠습니다.',
+   eng:"Dear passengers, this is your captain speaking. We are returning to the gate to allow one(/some of our) passengers to exit the aircraft."},
+  {ch:'6', sec:'6.6', cat:'기내 소란', title:'기내 난동 — 회항', tags:'disturbance 난동 diversion',
+   kor:'손님 여러분, 저는 기장입니다. 지금 기내 안전을 심각하게 위협하는 업무 방해 행위가 발생하고 있습니다. 이로 인해 우리 비행기는 ___공항으로 회항하게 되었습니다.',
+   eng:"Dear passengers, this is your captain speaking. Due to a cabin disturbance involving one(/some of our) passengers, we are diverting to ___airport."},
+
+  // ── Chapter 7: EMERGENCY ──
+  {ch:'7', sec:'7.1', cat:'비상', title:'기내 화재 (Cabin Fire)', tags:'fire 화재 smoke 연기',
+   kor:'손님 여러분, 저는 기장입니다. 지금 비행기 내에 작은 연기가 발생하여 저희 승무원들이 해결하고 있습니다. 감사합니다.',
+   eng:"Dear passengers, this is the captain. The event in the cabin is now under control. Thank you for your cooperation."},
+  {ch:'7', sec:'7.2', cat:'비상', title:'화재 진압 후 (Fire Extinguished)', tags:'fire extinguished 화재 진압',
+   kor:'손님 여러분, 저는 기장입니다. 조금 전 발생한 연기는 원인을 확인하여 해결하였으며, 지금 이 비행기는 예정대로 순항하고 있습니다. 적극적으로 협조해 주셔서 감사합니다.',
+   eng:"Dear passengers, this is the captain. The smoke has been completely removed. We will continue to our destination as scheduled. Thank you for your cooperation and enjoy the rest of the flight."},
+  {ch:'7', sec:'7.3', cat:'비상', title:'폭발물 위협 — 보안 점검 (지상)', tags:'bomb threat 폭발물 보안',
+   kor:'손님 여러분, 저는 기장입니다. 이 비행기는 공항당국에 의해 보안 점검이 실시될 예정입니다. [자리에서 기다려 주시기 바랍니다 / 비행기에서 내리셔서 보안요원의 점검이 진행되는 동안 지정된 대기 장소에서 기다려 주시기 바랍니다].',
+   eng:"Dear passengers, this is the captain. We have been advised by airport authorities that an extensive security check of the aircraft is required. [We kindly ask you to remain seated until the security check is completed. / We kindly ask you to exit the aircraft and wait in the terminal until the security check is completed.] Thank you for your cooperation."},
+  {ch:'7', sec:'7.4', cat:'비상', title:'폭발물 위협 — 점검 완료 후 출발', tags:'bomb threat 폭발물 완료 출발',
+   kor:'손님 여러분, 저는 기장입니다. 오랫동안 기다리셨습니다. 보안 점검 결과 이상이 없는 것으로 확인되어 잠시 후 출발할 예정입니다. 협조해 주셔서 감사합니다.',
+   eng:"Thank you for waiting, dear passengers, this is the captain. We have completed a thorough check of this aircraft and are satisfied about its safety and security, we will depart in a few minutes. Thank you for your cooperation."},
+  {ch:'7', sec:'7.5', cat:'비상', title:'폭발물 위협 — 회항', tags:'bomb threat 폭발물 회항 diversion',
+   kor:'손님 여러분, 저는 기장입니다. 우리 비행기는 보안상의 이유로 ______공항으로 회항할 예정이며, 약 ___시간 ___분 후에 도착할 것으로 예상합니다. 협조해 주셔서 감사합니다.',
+   eng:"Dear passengers, this is the captain. We will be diverting to ____airport due to security reasons. We expect to land at ____airport in about ____hour(s) and ____minutes. We appreciate your understanding."},
+  {ch:'7', sec:'7.6', cat:'비상', title:'여압 장치 고장 — 산소마스크 제거', tags:'pressurization oxygen mask 산소 여압',
+   kor:'손님 여러분, 저는 기장입니다. 이제부터 산소 마스크는 사용하지 않으셔도 됩니다. 도움이 필요하신 분들은 승무원에게 말씀해 주시기 바랍니다. 협조해 주셔서 감사합니다.',
+   eng:"Dear passengers, this is the captain. You may remove your oxygen masks at this time. If you require any assistance, please inform our cabin crew. Thank you for your cooperation."},
+  {ch:'7', sec:'7.7', cat:'비상', title:'비상 착륙 — 비행장', tags:'emergency landing 비상 착륙',
+   kor:'손님 여러분, 저는 기장입니다. 우리 비행기는 ______공항에 비상 착륙할 예정입니다. 승무원의 안내에 따라 주시기 바랍니다.',
+   eng:"Dear passengers, this is the captain. We will be making an emergency landing at ______airport. Please follow the instructions of the cabin crew."},
+  {ch:'7', sec:'7.8', cat:'비상', title:'비상 착륙 — 비행장 이외', tags:'emergency landing 비상 착륙 field',
+   kor:'손님 여러분, 저는 기장입니다. 우리 비행기는 비상 착륙할 예정입니다. 승무원의 안내를 따라 주시기 바랍니다.',
+   eng:"Dear passengers, this is the captain. We will be making an emergency landing. Please follow the instructions of the cabin crew."},
+  {ch:'7', sec:'7.9', cat:'비상', title:'비상 착수 (바다/강/호수)', tags:'ditching 착수 water sea river',
+   kor:'손님 여러분, 저는 기장입니다. 우리 비행기는 바다(/강/호수)에 비상 착륙할 예정입니다. 비행기는 물 위에 내리더라도 상당한 시간을 떠 있게 됩니다. 기내에는 충분한 구명복과 구명보트가 탑재되어 있으니 승무원의 안내에 따라 주시기 바랍니다. 감사합니다.',
+   eng:"Dear passengers, this is the captain. We have to make an emergency landing on the ocean(/on a river/on a lake). Even though we are landing on water, the aircraft will remain afloat for some time. We have a sufficient number of life jackets and lifeboats, so please follow the instructions of our cabin crew very carefully and in an orderly manner. Thank you for your cooperation."},
+  {ch:'7', sec:'7.10', cat:'비상', title:'비상 착륙 상세 안내 (Brace)', tags:'emergency landing brace 충격 비상',
+   kor:'승객 여러분, 저는 기장입니다. 이 비행기는 [기체 결함/기체 손상/엔진 고장/엔진 화재/기내 화재]로 [___공항에 / ___와 ___킬로미터 떨어진 지상(들판,빙판,눈 위)에 / ___바다에] 불가피하게 비상 착륙할 예정입니다. 저희 승무원은 이러한 사태에 대비하여 충분히 훈련되어 있습니다. "충격 방지자세" 또는 "Brace"라고 알려드리면 즉시 충격에 대비하는 자세를 취하시기 바랍니다. 또한 비행기가 멈추게 되면 승무원의 지시에 반드시 따라주시기 바랍니다.',
+   eng:"Dear passengers, this is the captain. Due to [a technical malfunction / severe aircraft damage / an engine problem / an engine fire / a cabin fire], we will be making an emergency landing/ditching on [___airport / a field/ice field/snow field located ___miles(km) from ___the ___ocean/sea]. Our crew members are fully trained for this type of emergency. Assume the brace position for impact as soon as hearing \"Brace\". After the plane comes to a complete stop, please follow instructions by the cabin crew."},
+  {ch:'7', sec:'7.11', cat:'비상', title:'비정상 착륙 (랜딩기어 이상)', tags:'landing gear abnormal 비정상 착륙',
+   kor:'승객 여러분, 저는 기장입니다. 이 비행기의 착륙 바퀴가 비정상으로 지시되어 착륙이 지연되고 있습니다. 착륙 중 약간의 충격이 예상되고 비행기가 정지 시에 (우측/좌측/전방)으로 기울어질 수 있습니다. 관계기관에는 만약을 위하여 구조요원들을 대기토록 조치하였습니다. 착륙 전에 여러분이 취해야 할 행동요령에 대해서는 저희 승무원이 안내해 드릴 것입니다.',
+   eng:"Dear passengers, this is the captain. Presently, our landing gear has an abnormal indication. Landing in this condition is different than a normal landing and we may experience some jolts during deceleration. The plane may lean to the (left/right/forward) as it comes to a stop. As a precaution, ground has been notified and emergency vehicles are standing by. Just prior to landing, you will be requested to brace for touchdown, and to hold this position until the airplane comes to a complete stop. Our cabin crew will give you further instructions."},
+  {ch:'7', sec:'7.12', cat:'비상', title:'항공기 피랍 (Hi-Jacking)', tags:'hijacking 피랍 hijack',
+   kor:'승객 여러분, 저는 기장입니다. 지금 이 비행기에는 ______단체 대원 / ______씨 일행이 탑승하고 있고 이분들의 지시에 따라 움직이고 있습니다. 이분들의 요구는 ______입니다. 신변 안전을 위해 불필요한 행동은 삼가해 주실 것을 당부드립니다.',
+   eng:"Dear passengers, this is the captain. I'd like you to listen to my announcement very carefully. We have a group of __________ / a party headed by Mr. __________on board and the aircraft is being operated according to their instructions. They demand that we__________. I ask you to remain calm, follow all instructions and do not attempt any unnecessary actions."},
+
+  // ── Chapter 8: 기타 ──
+  {ch:'8', sec:'8.1', cat:'기타', title:'제주도 소개 (Jeju Island)', tags:'jeju 제주도 한라산 소개',
+   kor:'손님 여러분, 저는 기장입니다. 지금 우리 비행기는 제주도 상공을 통과하고 있습니다. [날씨 관계로 섬의 모습이 잘 보이지 않고 있으나 현재 한라산 상공입니다. / 좌측(/우측) 창가에 앉으신 분들은 백록담을 보실 수 있습니다.] 제주도는 휴양지로서 각광받고 있으며, 특히 중심부에 위치한 한라산은 대한민국에서 가장 높은 산으로 그 높이는 1,952m입니다.',
+   eng:"Dear passengers, this is the captain. Currently we are flying over Jeju Island. [Even though this island is not visible due to limited visibility, we are passing over Mt. Halla. / On the left(/right) side of the aircraft, you can see Baekrokdam Crater.] Jeju Island is very famous for its tourist resorts and Mt. Halla. It is the highest mountain in the Republic of Korea with a height of 1,952 meters."},
+  {ch:'8', sec:'8.2', cat:'기타', title:'후지산 부근 통과 (Mt. Fuji)', tags:'fuji 후지산 일본 japan',
+   kor:'손님 여러분, 저는 기장입니다. 지금 우리 비행기의 좌측(/우측)으로 일본에서 가장 높은 후지산이 보이고 있습니다. 일본을 대표하는 후지산은 그 높이가 3,776m에 달하는 성층화산으로 그 정상에는 일년 대부분이 눈으로 덮여 있습니다.',
+   eng:"Dear passengers, this is the captain. On the left(/right) side of the aircraft you can see Mt. Fuji, the highest mountain in Japan. Mt. Fuji, a symbol of Japan, is 3,776 meters high, and is a strata volcano. The peak of the mountain is covered with snow for most of the year."},
+  {ch:'8', sec:'8.3', cat:'기타', title:'울릉도 소개 (Ulung Island)', tags:'ulung 울릉도 소개',
+   kor:'손님 여러분, 저는 기장입니다. 지금 우리 비행기는 울릉도 상공을 통과하고 있습니다. [날씨 관계로 섬의 모습은 보이지 않고 있으나 날씨가 좋은 날에는 좌측(/우측)으로 울릉도를 볼 수가 있습니다. / 좌측(/우측) 창가에 앉으신 분들은 울릉도를 보실 수 있습니다.] 행정구역 상 경상북도에 속하는 울릉도는 포항에서 217km 떨어져 있으며 1만명을 약간 상회하는 인구가 주로 어업과 농업에 종사하며 살고 있습니다.',
+   eng:"Dear passengers, this is the captain. We are flying over Ulung Island. [Currently this island is not visible due to limited visibility, but under clear weather conditions, you would be able to see it on the left(/right) side of the aircraft. / You can see it now on the left(/right) side of the aircraft.] Ulung Island belongs to the Gyung-Sang Buk Province as an administrative district and it is 217km from Pohang. The population is around ten thousand people, the majority of which are farmers and fishermen."}
+];
+
+var idxActiveCat = '';
+
+function buildIdxCategoryBar(){
+  var cats = [];
+  IDX_DATA.forEach(function(d){ if(cats.indexOf(d.cat)<0) cats.push(d.cat); });
+  var bar = document.getElementById('idx-category-bar');
+  bar.innerHTML = '';
+  var allBtn = document.createElement('button');
+  allBtn.textContent = '전체';
+  allBtn.className = 'idx-cat-btn' + (idxActiveCat===''?' active':'');
+  allBtn.onclick = function(){ idxActiveCat=''; buildIdxCategoryBar(); filterIdx(document.getElementById('idx-search').value); };
+  bar.appendChild(allBtn);
+  cats.forEach(function(c){
+    var btn = document.createElement('button');
+    btn.textContent = c;
+    btn.className = 'idx-cat-btn' + (idxActiveCat===c?' active':'');
+    btn.onclick = function(){ idxActiveCat=c; buildIdxCategoryBar(); filterIdx(document.getElementById('idx-search').value); };
+    bar.appendChild(btn);
+  });
+}
+
+function filterIdx(q){
+  q = (q||'').toLowerCase();
+  var list = document.getElementById('idx-list');
+  list.innerHTML = '';
+  var filtered = IDX_DATA.filter(function(d){
+    if(idxActiveCat && d.cat!==idxActiveCat) return false;
+    if(!q) return true;
+    return (d.title+d.kor+d.eng+d.tags+d.cat+d.sec).toLowerCase().indexOf(q)>=0;
+  });
+  if(!filtered.length){
+    list.innerHTML='<div style="color:var(--text3);font-family:var(--mono);font-size:12px;padding:20px 0;text-align:center">검색 결과 없음</div>';
+    return;
+  }
+  filtered.forEach(function(d){
+    var card = document.createElement('div');
+    card.className = 'idx-card';
+    card.innerHTML =
+      '<div class="idx-card-head">'+
+        '<span class="idx-sec">'+d.sec+'</span>'+
+        '<span class="idx-title">'+d.title+'</span>'+
+        '<span class="idx-cat">'+d.cat+'</span>'+
+      '</div>'+
+      '<div class="idx-body">'+
+        '<div class="idx-lang-row"><span class="lang-tag">KOR</span><div class="idx-script">'+escHtml(d.kor)+'</div></div>'+
+        '<div class="idx-lang-row" style="margin-top:8px"><span class="lang-tag" style="background:rgba(16,185,129,.15);color:var(--green);border-color:var(--green)">ENG</span><div class="idx-script" style="font-family:var(--mono);font-size:11px">'+escHtml(d.eng)+'</div></div>'+
+      '</div>'+
+      '<button class="idx-copy-btn" onclick="idxCopy(this,'+JSON.stringify(d.kor+'\n\n'+d.eng)+')">복사</button>';
+    list.appendChild(card);
+  });
+}
+
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function idxCopy(btn, txt){
+  navigator.clipboard.writeText(txt).then(function(){
+    var orig=btn.textContent; btn.textContent='복사됨!'; btn.style.color='var(--green)';
+    setTimeout(function(){ btn.textContent=orig; btn.style.color=''; },1200);
+  });
+}
 
 // ── SERVICE WORKER ─────────────────────────────────
 if('serviceWorker' in navigator){
