@@ -1,4 +1,4 @@
-const CACHE = 'briefing-v5';
+const CACHE = 'briefing-v6';
 const STATIC = ['./manifest.json', './index.html'];
 
 self.addEventListener('install', e => {
